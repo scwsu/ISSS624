@@ -7,34 +7,6 @@
     "text": "Welcome to ISSS624 Geospatial Analytics Applications!\nIn this webpage, I am going to share with you my learning journey of geospatial analytics.\n\n1 + 1\n\n[1] 2"
   },
   {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2"
-  },
-  {
-    "objectID": "Hands-on_Ex1.html",
-    "href": "Hands-on_Ex1.html",
-    "title": "Hands-on Exercise 1",
-    "section": "",
-    "text": "This is the overview paragraph."
-  },
-  {
-    "objectID": "Hands-on_Ex1.html#overview",
-    "href": "Hands-on_Ex1.html#overview",
-    "title": "Hands-on Exercise 1",
-    "section": "",
-    "text": "This is the overview paragraph."
-  },
-  {
-    "objectID": "Hands-on_Ex1.html#getting-started",
-    "href": "Hands-on_Ex1.html#getting-started",
-    "title": "Hands-on Exercise 1",
-    "section": "Getting Started",
-    "text": "Getting Started\nThis is the getting started paragraph."
-  },
-  {
     "objectID": "Hands-on_Ex1/Hands-on_Ex1.html",
     "href": "Hands-on_Ex1/Hands-on_Ex1.html",
     "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
@@ -61,5 +33,12 @@
     "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
     "section": "Importing Geospatial Data",
     "text": "Importing Geospatial Data\n\nImporting polygon feature data\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\", layer = \"MP14_SUBZONE_WEB_PL\")\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `D:\\scwsu\\ISSS624\\Hands-on_Ex1\\data\\geospatial' using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
   }
 ]
