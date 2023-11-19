@@ -11,9 +11,11 @@ execute:
 editor: visual
 ---
 
+## 1. Overview
+
 Urban Mobility Analysis by using passenger volume by origin-destination bus stops.
 
-## Getting Started
+## 2. Getting Started
 
 The code chunk below loads the following packages:
 
@@ -33,9 +35,9 @@ The data used for this analysis includes:
 
 -   Passenger Volume Data for Aug-Oct 2023, focusing on origin and destination bus stops, also retrieved from [LTADataMall](https://datamall.lta.gov.sg/content/datamall/en/dynamic-data.html).
 
-## Preparing Flow Data
+## 3. Preparing Flow Data
 
-### Importing Passenger Volume by Origin-Destination Bus Stops
+### 3.1. Importing Passenger Volume by Origin-Destination Bus Stops
 
 Firstly, we will import the *Passenger Volume by Origin-Destination Bus Stops* data set download from LTADataMall by using \`read_csv()\` of **readr** package and name the dataframe as \`odbus\`.
 
@@ -52,7 +54,7 @@ odbus$ORIGIN_PT_CODE <- as.factor(odbus$ORIGIN_PT_CODE)
 odbus$DESTINATION_PT_CODE <- as.factor(odbus$DESTINATION_PT_CODE)
 ```
 
-### Extracting Commuting Flow Data
+### 3.2. Extracting Commuting Flow Data
 
 The following code chunk extracts data related to commuting patterns on weekdays during the busy morning rush hours (7 am, 8 am, and 9 am).
 
@@ -66,7 +68,7 @@ origtrip_7_9 <- odbus %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 ```
 
-### Importing Geospatial Data
+### 3.3. Importing Geospatial Data
 
 The following code chunk uses \`st_read()\` function from the **sf** package to import \`BusStop\` shapefile into R dataframe named \`BusStop\`. It is configured with the **svy21** projected coordinate system, with a \`crs\` setting of 3414.
 
@@ -77,7 +79,7 @@ busstop <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 ```
 
-### Importing Planning Subzone Data
+### 3.4. Importing Planning Subzone Data
 
 The following code chunk uses \`st_read()\` function from the **sf** package to import \`MPSZ-2019\` shapefile into R dataframe named \`mpsz\`. To enable the combined use of \`mpsz\` with \`BusStop\`, \`mpsz\` is configured with the **svy21** projected coordinate system, with a \`crs\` setting of 3414.
 

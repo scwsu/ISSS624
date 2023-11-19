@@ -27,6 +27,8 @@ The following code chunk installs and loads **sf** and **tidyverse** packages in
 pacman::p_load(sf, tidyverse)
 ```
 
+The data sets used are:
+
 -   Master Plan 2014 Subzone Boundary (Web) from [data.gov.sg](https://beta.data.gov.sg/)
 
 -   Pre-Schools Location from [data.gov.sg](https://beta.data.gov.sg/)
