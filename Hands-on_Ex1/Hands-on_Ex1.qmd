@@ -1,6 +1,6 @@
 ---
 title: "1A: Geospatial Data Wrangling with R"
-author: "Sandi Su"
+author: "Su Sandi Cho Win"
 date: "19 November 2023"
 date-modified: "last-modified"
 format: html
@@ -18,6 +18,10 @@ In this hands-on exercise, I learn how to import and wrangle geospatial data in 
 ## 2. Getting Started
 
 The following code chunk installs and loads **sf** and **tidyverse** packages into R environment.
+
+::: callout-note
+**sf** package is used for importing, managing, and processing geospatial data.
+:::
 
 ```{r}
 pacman::p_load(sf, tidyverse)
@@ -37,11 +41,21 @@ pacman::p_load(sf, tidyverse)
 
 The following code chunk uses \`st_read()\` function from the **sf** package to import \`MP14_SUBZONE_WEB_PL\` shapefile into R as **polygon feature data** frame.
 
+::: callout-note
+When loading geospatial data in shapefile format, two arguments are utilized: firstly, `dsn` to specify the data path, and secondly, `layer` to indicate the name of the shapefile. It's not necessary to include file extensions such as .shp, .dbf, .prj, or .shx.
+:::
+
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
 ```
 
 The \`mpsz\` simple feature data frame consists of **323** multipolygon features and includes **15** fields. It is defined using the **svy21** projected coordinate system.
+
+::: callout-note
+The **svy21**, also known as the Singapore **svy21** Projected Coordinate System, is a coordinate system employed by Singapore. It uses the Transverse Mercator projection, mapping geographical coordinates that reference the WGS 84 ellipsoid.
+
+The bounding box of this system displays the extent of the data in both the x and y dimensions.
+:::
 
 ### 3.2. Importing Polyline Feature Data
 
@@ -58,11 +72,19 @@ The \`cyclingpath\` linestring feature data frame contains a total of **2558** f
 
 The following code chunk uses \`st_read()\` function from the **sf** package to import \`PreSchoolsLocation\` into R.
 
+::: callout-note
+The complete path and kml file extension must be provided in kml format.
+:::
+
 ```{r}
 preschool <- st_read("data/geospatial/PreSchoolsLocation.kml")
 ```
 
 The \`preschool\` point feature data frame contains a combined total of **2290** features and comprises **2** fields. Notably, unlike the two preceding simple feature data frames, \`preschool\` employs the **wgs84** geographic coordinate system.
+
+::: callout-note
+**wgs84** represents the latest version of the World Geodetic System (WGS), a global standard utilized in fields like cartography, geodesy, and satellite navigation, including GPS. It is a geographic coordinate system that determines locations on Earth using a three-dimensional spherical surface model.
+:::
 
 ## **4. Checking the Content of A Simple Feature Data Frame**
 
@@ -84,9 +106,12 @@ glimpse(mpsz)
 
 Using \`head()\` in the base R provides a comprehensive view of a feature object\`s information.
 
+::: callout-note
+Adjust the "n" argument to modify the number of observations to a reasonable value.
+:::
+
 ```{r}
 head(mpsz, n=5)
-# adjust the "n" argument to modify the number of observations to a reasonable value. 
 ```
 
 ## **5. Plotting Geospatial Data**
@@ -115,7 +140,7 @@ plot(mpsz["SUBZONE_N"])
 plot(mpsz["REGION_N"])
 ```
 
-::: callout-important
+::: callout-note
 \`plot()\` is meant for plotting the geospatial object for a quick look. For high cartographic quality plot, other R package such as **tmap** should be used.
 :::
 
