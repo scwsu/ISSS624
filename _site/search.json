@@ -4,35 +4,35 @@
     "href": "index.html",
     "title": "ISSS624",
     "section": "",
-    "text": "Welcome to ISSS624 Geospatial Analytics Applications!\nIn this webpage, I am going to share with you my learning journey of geospatial analytics.\n\n1 + 1\n\n[1] 2"
+    "text": "Welcome to ISSS624 Geospatial Analytics Applications!\nIn this webpage, I am going to share with you my learning journey of geospatial analytics."
   },
   {
     "objectID": "Hands-on_Ex1/Hands-on_Ex1.html",
     "href": "Hands-on_Ex1/Hands-on_Ex1.html",
-    "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
+    "title": "1A: Geospatial Data Wrangling with R",
     "section": "",
     "text": "In this hands-on exercise, I learn how to import and wrangle geospatial data in using appropriate R Packages."
   },
   {
     "objectID": "Hands-on_Ex1/Hands-on_Ex1.html#overview",
     "href": "Hands-on_Ex1/Hands-on_Ex1.html#overview",
-    "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
+    "title": "1A: Geospatial Data Wrangling with R",
     "section": "",
     "text": "In this hands-on exercise, I learn how to import and wrangle geospatial data in using appropriate R Packages."
   },
   {
     "objectID": "Hands-on_Ex1/Hands-on_Ex1.html#getting-started",
     "href": "Hands-on_Ex1/Hands-on_Ex1.html#getting-started",
-    "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
-    "section": "Getting Started",
-    "text": "Getting Started\nThe code chunk below install and load sf and tidyverse packages into R environment.\n\npacman::p_load(sf, tidyverse)"
+    "title": "1A: Geospatial Data Wrangling with R",
+    "section": "2. Getting Started",
+    "text": "2. Getting Started\nThe following code chunk installs and loads sf and tidyverse packages into R environment.\n\npacman::p_load(sf, tidyverse)\n\n\nMaster Plan 2014 Subzone Boundary (Web) from data.gov.sg\nPre-Schools Location from data.gov.sg\nCycling Path from LTADataMall\nLatest version of Singapore Airbnb listing data from Inside Airbnb"
   },
   {
     "objectID": "Hands-on_Ex1/Hands-on_Ex1.html#importing-geospatial-data",
     "href": "Hands-on_Ex1/Hands-on_Ex1.html#importing-geospatial-data",
-    "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
-    "section": "Importing Geospatial Data",
-    "text": "Importing Geospatial Data\n\nImporting polygon feature data\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\", layer = \"MP14_SUBZONE_WEB_PL\")\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `D:\\scwsu\\ISSS624\\Hands-on_Ex1\\data\\geospatial' using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21"
+    "title": "1A: Geospatial Data Wrangling with R",
+    "section": "3. Importing Geospatial Data",
+    "text": "3. Importing Geospatial Data\n\n3.1. Importing Polygon Feature Data\nThe following code chunk uses ‘st_read()’ function from the sf package to import ‘MP14_SUBZONE_WEB_PL’ shapefile into R as polygon feature data frame.\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\", layer = \"MP14_SUBZONE_WEB_PL\")\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `D:\\scwsu\\ISSS624\\Hands-on_Ex1\\data\\geospatial' using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n\n\nThe ‘mpsz’ simple feature data frame consists of 323 multipolygon features and includes 15 fields. It is defined using the svy21 projected coordinate system.\n\n\n3.2. Importing Polyline Feature Data\nThe following code chunk uses ‘st_read()’ function from the sf package to import ‘CyclingPath’ shapefile into R as line feature data frame.\n\ncyclingpath &lt;- st_read(dsn = \"data/geospatial\",\n                       layer = \"CyclingPathGazette\")\n\nReading layer `CyclingPathGazette' from data source \n  `D:\\scwsu\\ISSS624\\Hands-on_Ex1\\data\\geospatial' using driver `ESRI Shapefile'\nSimple feature collection with 2558 features and 2 fields\nGeometry type: MULTILINESTRING\nDimension:     XY\nBounding box:  xmin: 11854.32 ymin: 28347.98 xmax: 42626.09 ymax: 48948.15\nProjected CRS: SVY21\n\n\nThe ‘cyclingpath’ linestring feature data frame contains a total of 2558 features and comprises 2 fields. It is also defined within the svy21 projected coordinate system.\n\n\n3.3. Importing GIS Data\nThe following code chunk uses ‘st_read()’ function from the sf package to import ‘PreSchoolsLocation’ into R.\n\npreschool &lt;- st_read(\"data/geospatial/PreSchoolsLocation.kml\")\n\nReading layer `PRESCHOOLS_LOCATION' from data source \n  `D:\\scwsu\\ISSS624\\Hands-on_Ex1\\data\\geospatial\\PreSchoolsLocation.kml' \n  using driver `KML'\nSimple feature collection with 2290 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6878 ymin: 1.247759 xmax: 103.9897 ymax: 1.462134\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\n\nThe ‘preschool’ point feature data frame contains a combined total of 2290 features and comprises 2 fields. Notably, unlike the two preceding simple feature data frames, ‘preschool’ employs the wgs84 geographic coordinate system."
   },
   {
     "objectID": "about.html",
@@ -40,5 +40,89 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "In-class Ex/In-class_Ex1/In-class_Ex1.html",
+    "href": "In-class Ex/In-class_Ex1/In-class_Ex1.html",
+    "title": "Urban Mobility Analysis",
+    "section": "",
+    "text": "Urban Mobility Analysis by using passenger volume by origin-destination bus stops."
+  },
+  {
+    "objectID": "In-class Ex/In-class_Ex1/In-class_Ex1.html#getting-started",
+    "href": "In-class Ex/In-class_Ex1/In-class_Ex1.html#getting-started",
+    "title": "Urban Mobility Analysis",
+    "section": "Getting Started",
+    "text": "Getting Started\nThe code chunk below loads the following packages:\n\ntmap: for thematic mapping\nsf: for geospatial data handling\ntidyverse: for non-spatial data handling\n\n\npacman::p_load(sf, tmap, tidyverse)\n\nThe data used for this analysis includes:\n\nSubzone Boundary Data from the Master Plan 2019 (last updated Dec 2019) from data.gov.sg.\nBus Stop Location Data (last updated Jul 2023) obtained from LTADataMall.\nPassenger Volume Data for Aug-Oct 2023, focusing on origin and destination bus stops, also retrieved from LTADataMall."
+  },
+  {
+    "objectID": "In-class Ex/In-class_Ex1/In-class_Ex1.html#preparing-the-flow-data",
+    "href": "In-class Ex/In-class_Ex1/In-class_Ex1.html#preparing-the-flow-data",
+    "title": "In-class Exercise 1",
+    "section": "Preparing the Flow Data",
+    "text": "Preparing the Flow Data\n\nImporting the\nFirstly, we will import the Passenger Volumee by Origin Destination Bus Stops data set download from LTA DataMall by using ‘read_csv()’ of readr package.\n\nodbus &lt;- read_csv(\"data/aspatial/origin_destination_bus_202308.csv\")\n\n\nodbus$ORIGIN_PT_CODE &lt;- as.factor(odbus$ORIGIN_PT_CODE)\nodbus$DESTINATION_PT_CODE &lt;- as.factor(odbus$DESTINATION_PT_CODE)\n\n\n\nExtracting the study data\n\norigtrip_7_9 &lt;- odbus %&gt;%\n  filter(DAY_TYPE == \"WEEKDAY\") %&gt;%\n  filter(TIME_PER_HOUR &gt;= 7 &\n           TIME_PER_HOUR &lt;= 9) %&gt;%\n  group_by(ORIGIN_PT_CODE) %&gt;%\n  summarise(TRIPS = sum(TOTAL_TRIPS))\n\n\nbusstop &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"BusStop\") %&gt;%\n  st_transform(crs = 3414)\n\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"MPSZ-2019\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MPSZ-2019' from data source \n  `D:\\scwsu\\ISSS624\\In-class Ex\\In-class_Ex1\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84\n\nmpsz\n\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21 / Singapore TM\nFirst 10 features:\n                 SUBZONE_N SUBZONE_C       PLN_AREA_N PLN_AREA_C       REGION_N\n1              MARINA EAST    MESZ01      MARINA EAST         ME CENTRAL REGION\n2         INSTITUTION HILL    RVSZ05     RIVER VALLEY         RV CENTRAL REGION\n3           ROBERTSON QUAY    SRSZ01  SINGAPORE RIVER         SR CENTRAL REGION\n4  JURONG ISLAND AND BUKOM    WISZ01  WESTERN ISLANDS         WI    WEST REGION\n5             FORT CANNING    MUSZ02           MUSEUM         MU CENTRAL REGION\n6         MARINA EAST (MP)    MPSZ05    MARINE PARADE         MP CENTRAL REGION\n7                   SUDONG    WISZ03  WESTERN ISLANDS         WI    WEST REGION\n8                  SEMAKAU    WISZ02  WESTERN ISLANDS         WI    WEST REGION\n9           SOUTHERN GROUP    SISZ02 SOUTHERN ISLANDS         SI CENTRAL REGION\n10                 SENTOSA    SISZ01 SOUTHERN ISLANDS         SI CENTRAL REGION\n   REGION_C                       geometry\n1        CR MULTIPOLYGON (((33222.98 29...\n2        CR MULTIPOLYGON (((28481.45 30...\n3        CR MULTIPOLYGON (((28087.34 30...\n4        WR MULTIPOLYGON (((14557.7 304...\n5        CR MULTIPOLYGON (((29542.53 31...\n6        CR MULTIPOLYGON (((35279.55 30...\n7        WR MULTIPOLYGON (((15772.59 21...\n8        WR MULTIPOLYGON (((19843.41 21...\n9        CR MULTIPOLYGON (((30870.53 22...\n10       CR MULTIPOLYGON (((26879.04 26..."
+  },
+  {
+    "objectID": "Hands-on_Ex1.html",
+    "href": "Hands-on_Ex1.html",
+    "title": "Hands-on Exercise 1",
+    "section": "",
+    "text": "This is the overview paragraph."
+  },
+  {
+    "objectID": "Hands-on_Ex1.html#overview",
+    "href": "Hands-on_Ex1.html#overview",
+    "title": "Hands-on Exercise 1",
+    "section": "",
+    "text": "This is the overview paragraph."
+  },
+  {
+    "objectID": "Hands-on_Ex1.html#getting-started",
+    "href": "Hands-on_Ex1.html#getting-started",
+    "title": "Hands-on Exercise 1",
+    "section": "Getting Started",
+    "text": "Getting Started\nThis is the getting started paragraph."
+  },
+  {
+    "objectID": "In-class Ex/In-class_Ex1/data/geospatial/MPSZ-2019.html",
+    "href": "In-class Ex/In-class_Ex1/data/geospatial/MPSZ-2019.html",
+    "title": "ISSS624",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+  },
+  {
+    "objectID": "In-class Ex/In-class_Ex1/In-class_Ex1 files/about.html",
+    "href": "In-class Ex/In-class_Ex1/In-class_Ex1 files/about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "In-class Ex/In-class_Ex1/In-class_Ex1 files/index.html",
+    "href": "In-class Ex/In-class_Ex1/In-class_Ex1 files/index.html",
+    "title": "In-class_Ex1",
+    "section": "",
+    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "Hands-on_Ex1/Hands-on_Ex1.html#checking-the-content-of-a-simple-feature-data-frame",
+    "href": "Hands-on_Ex1/Hands-on_Ex1.html#checking-the-content-of-a-simple-feature-data-frame",
+    "title": "1A: Geospatial Data Wrangling with R",
+    "section": "4. Checking the Content of A Simple Feature Data Frame",
+    "text": "4. Checking the Content of A Simple Feature Data Frame\nThe column in the simple feature (sf) data frame that holds the geometries is structured as a list with a class of sfc. There are two methods to inspect the data within it:\n\nObtain the geometry list-column by using either ‘mpsz$geom’ or ‘mpsz[[i]]’.\nUtilize ‘st_geometry’ to present details about the feature class, including information about the geometry type, the geographic extent of the features, and the coordinate system used in the data.\n\n\nst_geometry(mpsz)\n\nGeometry set for 323 features \nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\nFirst 5 geometries:\n\n\nA peek into the data using the ‘glimpse’ function from the dplyr package unveils relevant attribute details, including the data type of each field.\n\nglimpse(mpsz)\n\nRows: 323\nColumns: 16\n$ OBJECTID   &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, …\n$ SUBZONE_NO &lt;int&gt; 1, 1, 3, 8, 3, 7, 9, 2, 13, 7, 12, 6, 1, 5, 1, 1, 3, 2, 2, …\n$ SUBZONE_N  &lt;chr&gt; \"MARINA SOUTH\", \"PEARL'S HILL\", \"BOAT QUAY\", \"HENDERSON HIL…\n$ SUBZONE_C  &lt;chr&gt; \"MSSZ01\", \"OTSZ01\", \"SRSZ03\", \"BMSZ08\", \"BMSZ03\", \"BMSZ07\",…\n$ CA_IND     &lt;chr&gt; \"Y\", \"Y\", \"Y\", \"N\", \"N\", \"N\", \"N\", \"Y\", \"N\", \"N\", \"N\", \"N\",…\n$ PLN_AREA_N &lt;chr&gt; \"MARINA SOUTH\", \"OUTRAM\", \"SINGAPORE RIVER\", \"BUKIT MERAH\",…\n$ PLN_AREA_C &lt;chr&gt; \"MS\", \"OT\", \"SR\", \"BM\", \"BM\", \"BM\", \"BM\", \"SR\", \"QT\", \"QT\",…\n$ REGION_N   &lt;chr&gt; \"CENTRAL REGION\", \"CENTRAL REGION\", \"CENTRAL REGION\", \"CENT…\n$ REGION_C   &lt;chr&gt; \"CR\", \"CR\", \"CR\", \"CR\", \"CR\", \"CR\", \"CR\", \"CR\", \"CR\", \"CR\",…\n$ INC_CRC    &lt;chr&gt; \"5ED7EB253F99252E\", \"8C7149B9EB32EEFC\", \"C35FEFF02B13E0E5\",…\n$ FMEL_UPD_D &lt;date&gt; 2014-12-05, 2014-12-05, 2014-12-05, 2014-12-05, 2014-12-05…\n$ X_ADDR     &lt;dbl&gt; 31595.84, 28679.06, 29654.96, 26782.83, 26201.96, 25358.82,…\n$ Y_ADDR     &lt;dbl&gt; 29220.19, 29782.05, 29974.66, 29933.77, 30005.70, 29991.38,…\n$ SHAPE_Leng &lt;dbl&gt; 5267.381, 3506.107, 1740.926, 3313.625, 2825.594, 4428.913,…\n$ SHAPE_Area &lt;dbl&gt; 1630379.27, 559816.25, 160807.50, 595428.89, 387429.44, 103…\n$ geometry   &lt;MULTIPOLYGON [m]&gt; MULTIPOLYGON (((31495.56 30..., MULTIPOLYGON (…\n\n\nUsing ‘head()’ in the base R provides a comprehensive view of a feature object’s information.\n\nhead(mpsz, n=5)\n\nSimple feature collection with 5 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 25867.68 ymin: 28369.47 xmax: 32362.39 ymax: 30435.54\nProjected CRS: SVY21\n  OBJECTID SUBZONE_NO      SUBZONE_N SUBZONE_C CA_IND      PLN_AREA_N\n1        1          1   MARINA SOUTH    MSSZ01      Y    MARINA SOUTH\n2        2          1   PEARL'S HILL    OTSZ01      Y          OUTRAM\n3        3          3      BOAT QUAY    SRSZ03      Y SINGAPORE RIVER\n4        4          8 HENDERSON HILL    BMSZ08      N     BUKIT MERAH\n5        5          3        REDHILL    BMSZ03      N     BUKIT MERAH\n  PLN_AREA_C       REGION_N REGION_C          INC_CRC FMEL_UPD_D   X_ADDR\n1         MS CENTRAL REGION       CR 5ED7EB253F99252E 2014-12-05 31595.84\n2         OT CENTRAL REGION       CR 8C7149B9EB32EEFC 2014-12-05 28679.06\n3         SR CENTRAL REGION       CR C35FEFF02B13E0E5 2014-12-05 29654.96\n4         BM CENTRAL REGION       CR 3775D82C5DDBEFBD 2014-12-05 26782.83\n5         BM CENTRAL REGION       CR 85D9ABEF0A40678F 2014-12-05 26201.96\n    Y_ADDR SHAPE_Leng SHAPE_Area                       geometry\n1 29220.19   5267.381  1630379.3 MULTIPOLYGON (((31495.56 30...\n2 29782.05   3506.107   559816.2 MULTIPOLYGON (((29092.28 30...\n3 29974.66   1740.926   160807.5 MULTIPOLYGON (((29932.33 29...\n4 29933.77   3313.625   595428.9 MULTIPOLYGON (((27131.28 30...\n5 30005.70   2825.594   387429.4 MULTIPOLYGON (((26451.03 30...\n\n# adjust the \"n\" argument to modify the number of observations to a reasonable value."
+  },
+  {
+    "objectID": "Hands-on_Ex1/Hands-on_Ex1.html#plotting-geospatial-data",
+    "href": "Hands-on_Ex1/Hands-on_Ex1.html#plotting-geospatial-data",
+    "title": "1A: Geospatial Data Wrangling with R",
+    "section": "5. Plotting Geospatial Data",
+    "text": "5. Plotting Geospatial Data\nIn the realm of geospatial data analytics, merely examining feature details is inadequate. To visualize geospatial features, you can employ the ‘plot()’ function from R Graphic.\n\n\n\n\n\n\nNote\n\n\n\nBy default, a sf object generates a multiplot. The subsequent plot illustrates the initial 9 of 15 attributes. To adjust the quantity of attributes displayed in the plot, modify the ‘max.plot’ parameter to a desired value.\n\n\n\nplot(mpsz)\n\n\n\n\nTo plot the geometric data exclusively , apply ‘st_geometry’ to the data frame prior to initiating the plot.\n\nplot(st_geometry(mpsz))\n\n\n\n\nA plot focusing on a particular attribute of the sf object can also be created.\n\nplot(mpsz[\"PLN_AREA_N\"])\n\n\n\nplot(mpsz[\"SUBZONE_N\"])\n\n\n\nplot(mpsz[\"REGION_N\"])\n\n\n\n\n\n\n\n\n\n\nImportant"
+  },
+  {
+    "objectID": "In-class Ex/In-class_Ex1/In-class_Ex1.html#preparing-flow-data",
+    "href": "In-class Ex/In-class_Ex1/In-class_Ex1.html#preparing-flow-data",
+    "title": "Urban Mobility Analysis",
+    "section": "Preparing Flow Data",
+    "text": "Preparing Flow Data\n\nImporting Passenger Volume by Origin-Destination Bus Stops\nFirstly, we will import the Passenger Volume by Origin-Destination Bus Stops data set download from LTADataMall by using ‘read_csv()’ of readr package and name the dataframe as ‘odbus’.\n\nodbus &lt;- read_csv(\"data/aspatial/origin_destination_bus_202308.csv\")\n\nTo treat the numeric variables ‘ORIGIN_PT_CODE’ and ‘DESTINATION_PT_CODE’ as categorical grouping variables in R, they should be converted to factors. This transformation allows R to recognize and work with them as categorical variables.\n\nodbus$ORIGIN_PT_CODE &lt;- as.factor(odbus$ORIGIN_PT_CODE)\nodbus$DESTINATION_PT_CODE &lt;- as.factor(odbus$DESTINATION_PT_CODE)\n\n\n\nExtracting Commuting Flow Data\nThe following code chunk extracts data related to commuting patterns on weekdays during the busy morning rush hours (7 am, 8 am, and 9 am).\n\norigtrip_7_9 &lt;- odbus %&gt;%\n  filter(DAY_TYPE == \"WEEKDAY\") %&gt;%\n  filter(TIME_PER_HOUR &gt;= 7 &\n           TIME_PER_HOUR &lt;= 9) %&gt;%\n  group_by(ORIGIN_PT_CODE) %&gt;%\n  summarise(TRIPS = sum(TOTAL_TRIPS))\n\n\n\nImporting Geospatial Data\nThe following code chunk uses ‘st_read()’ function from the sf package to import ‘BusStop’ shapefile into R dataframe named ‘BusStop’. It is configured with the svy21 projected coordinate system, with a ‘crs’ setting of 3414.\n\nbusstop &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"BusStop\") %&gt;%\n  st_transform(crs = 3414)\n\n\n\nImporting Planning Subzone Data\nThe following code chunk uses ‘st_read()’ function from the sf package to import ‘MPSZ-2019’ shapefile into R dataframe named ‘mpsz’. To enable the combined use of ‘mpsz’ with ‘BusStop’, ‘mpsz’ is configured with the svy21 projected coordinate system, with a ‘crs’ setting of 3414.\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\",\n                   layer = \"MPSZ-2019\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MPSZ-2019' from data source \n  `D:\\scwsu\\ISSS624\\In-class Ex\\In-class_Ex1\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84\n\nmpsz\n\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21 / Singapore TM\nFirst 10 features:\n                 SUBZONE_N SUBZONE_C       PLN_AREA_N PLN_AREA_C       REGION_N\n1              MARINA EAST    MESZ01      MARINA EAST         ME CENTRAL REGION\n2         INSTITUTION HILL    RVSZ05     RIVER VALLEY         RV CENTRAL REGION\n3           ROBERTSON QUAY    SRSZ01  SINGAPORE RIVER         SR CENTRAL REGION\n4  JURONG ISLAND AND BUKOM    WISZ01  WESTERN ISLANDS         WI    WEST REGION\n5             FORT CANNING    MUSZ02           MUSEUM         MU CENTRAL REGION\n6         MARINA EAST (MP)    MPSZ05    MARINE PARADE         MP CENTRAL REGION\n7                   SUDONG    WISZ03  WESTERN ISLANDS         WI    WEST REGION\n8                  SEMAKAU    WISZ02  WESTERN ISLANDS         WI    WEST REGION\n9           SOUTHERN GROUP    SISZ02 SOUTHERN ISLANDS         SI CENTRAL REGION\n10                 SENTOSA    SISZ01 SOUTHERN ISLANDS         SI CENTRAL REGION\n   REGION_C                       geometry\n1        CR MULTIPOLYGON (((33222.98 29...\n2        CR MULTIPOLYGON (((28481.45 30...\n3        CR MULTIPOLYGON (((28087.34 30...\n4        WR MULTIPOLYGON (((14557.7 304...\n5        CR MULTIPOLYGON (((29542.53 31...\n6        CR MULTIPOLYGON (((35279.55 30...\n7        WR MULTIPOLYGON (((15772.59 21...\n8        WR MULTIPOLYGON (((19843.41 21...\n9        CR MULTIPOLYGON (((30870.53 22...\n10       CR MULTIPOLYGON (((26879.04 26..."
   }
 ]

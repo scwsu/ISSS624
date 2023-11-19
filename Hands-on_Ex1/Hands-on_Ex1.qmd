@@ -1,24 +1,119 @@
 ---
-title: "Hands-on Exercise 1: Geospatial Data Wrangling with R"
+title: "1A: Geospatial Data Wrangling with R"
+author: "Sandi Su"
+date: "19 November 2023"
+date-modified: "last-modified"
+format: html
+execute:
+  echo: true
+  eval: true
+  warning: false
 editor: visual
 ---
 
-## Overview
+## 1. Overview
 
 In this hands-on exercise, I learn how to import and wrangle geospatial data in using appropriate R Packages.
 
-## Getting Started
+## 2. Getting Started
 
-The code chunk below install and load sf and tidyverse packages into R environment.
+The following code chunk installs and loads **sf** and **tidyverse** packages into R environment.
 
 ```{r}
 pacman::p_load(sf, tidyverse)
 ```
 
-## Importing Geospatial Data
+-   Master Plan 2014 Subzone Boundary (Web) from [data.gov.sg](https://beta.data.gov.sg/)
 
-### Importing polygon feature data
+-   Pre-Schools Location from [data.gov.sg](https://beta.data.gov.sg/)
+
+-   Cycling Path from [LTADataMall](https://datamall.lta.gov.sg/content/datamall/en.html)
+
+-   Latest version of Singapore Airbnb listing data from [Inside Airbnb](http://insideairbnb.com/get-the-data/)
+
+## 3. Importing Geospatial Data
+
+### 3.1. Importing Polygon Feature Data
+
+The following code chunk uses 'st_read()' function from the **sf** package to import 'MP14_SUBZONE_WEB_PL' shapefile into R as **polygon feature data** frame.
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
 ```
+
+The 'mpsz' simple feature data frame consists of **323** multipolygon features and includes **15** fields. It is defined using the **svy21** projected coordinate system.
+
+### 3.2. Importing Polyline Feature Data
+
+The following code chunk uses 'st_read()' function from the **sf** package to import 'CyclingPath' shapefile into R as **line feature data** frame.
+
+```{r}
+cyclingpath <- st_read(dsn = "data/geospatial",
+                       layer = "CyclingPathGazette")
+```
+
+The 'cyclingpath' linestring feature data frame contains a total of **2558** features and comprises **2** fields. It is also defined within the **svy21** projected coordinate system.
+
+### 3.3. Importing GIS Data
+
+The following code chunk uses 'st_read()' function from the **sf** package to import 'PreSchoolsLocation' into R.
+
+```{r}
+preschool <- st_read("data/geospatial/PreSchoolsLocation.kml")
+```
+
+The 'preschool' point feature data frame contains a combined total of **2290** features and comprises **2** fields. Notably, unlike the two preceding simple feature data frames, 'preschool' employs the **wgs84** geographic coordinate system.
+
+## **4. Checking the Content of A Simple Feature Data Frame**
+
+The column in the simple feature (sf) data frame that holds the geometries is structured as a list with a class of **sfc**. There are two methods to inspect the data within it:
+
+-   Obtain the geometry list-column by using either 'mpsz\$geom' or 'mpsz\[\[i\]\]'.
+
+-   Utilize 'st_geometry' to present details about the feature class, including information about the geometry type, the geographic extent of the features, and the coordinate system used in the data.
+
+```{r}
+st_geometry(mpsz)
+```
+
+A peek into the data using the 'glimpse' function from the **dplyr** package unveils relevant attribute details, including the data type of each field.
+
+```{r}
+glimpse(mpsz)
+```
+
+Using 'head()' in the base R provides a comprehensive view of a feature object's information.
+
+```{r}
+head(mpsz, n=5)
+# adjust the "n" argument to modify the number of observations to a reasonable value. 
+```
+
+## **5. Plotting Geospatial Data**
+
+In the realm of geospatial data analytics, merely examining feature details is inadequate. To visualize geospatial features, you can employ the 'plot()' function from **R Graphic**.
+
+::: callout-note
+By default, a sf object generates a multiplot. The subsequent plot illustrates the initial 9 of 15 attributes. To adjust the quantity of attributes displayed in the plot, modify the 'max.plot' parameter to a desired value.
+:::
+
+```{r}
+plot(mpsz)
+```
+
+To plot the geometric data exclusively , apply 'st_geometry' to the data frame prior to initiating the plot.
+
+```{r}
+plot(st_geometry(mpsz))
+```
+
+A plot focusing on a particular attribute of the sf object can also be created.
+
+```{r}
+plot(mpsz["PLN_AREA_N"])
+plot(mpsz["SUBZONE_N"])
+plot(mpsz["REGION_N"])
+```
+
+::: callout-important
+:::
