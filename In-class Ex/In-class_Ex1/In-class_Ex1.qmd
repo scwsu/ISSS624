@@ -37,14 +37,14 @@ The data used for this analysis includes:
 
 ### Importing Passenger Volume by Origin-Destination Bus Stops
 
-Firstly, we will import the *Passenger Volume by Origin-Destination Bus Stops* data set download from LTADataMall by using 'read_csv()' of **readr** package and name the dataframe as 'odbus'.
+Firstly, we will import the *Passenger Volume by Origin-Destination Bus Stops* data set download from LTADataMall by using \`read_csv()\` of **readr** package and name the dataframe as \`odbus\`.
 
 ```{r}
 #| eval: false
 odbus <- read_csv("data/aspatial/origin_destination_bus_202308.csv")
 ```
 
-To treat the numeric variables 'ORIGIN_PT_CODE' and 'DESTINATION_PT_CODE' as categorical grouping variables in R, they should be converted to factors. This transformation allows R to recognize and work with them as categorical variables.
+To treat the numeric variables \`ORIGIN_PT_CODE\` and \`DESTINATION_PT_CODE\` as categorical grouping variables in R, they should be converted to factors. This transformation allows R to recognize and work with them as categorical variables.
 
 ```{r}
 #| eval: false
@@ -68,7 +68,7 @@ origtrip_7_9 <- odbus %>%
 
 ### Importing Geospatial Data
 
-The following code chunk uses 'st_read()' function from the **sf** package to import 'BusStop' shapefile into R dataframe named 'BusStop'. It is configured with the **svy21** projected coordinate system, with a 'crs' setting of 3414.
+The following code chunk uses \`st_read()\` function from the **sf** package to import \`BusStop\` shapefile into R dataframe named \`BusStop\`. It is configured with the **svy21** projected coordinate system, with a \`crs\` setting of 3414.
 
 ```{r}
 #| eval: false
@@ -79,7 +79,7 @@ busstop <- st_read(dsn = "data/geospatial",
 
 ### Importing Planning Subzone Data
 
-The following code chunk uses 'st_read()' function from the **sf** package to import 'MPSZ-2019' shapefile into R dataframe named 'mpsz'. To enable the combined use of 'mpsz' with 'BusStop', 'mpsz' is configured with the **svy21** projected coordinate system, with a 'crs' setting of 3414.
+The following code chunk uses \`st_read()\` function from the **sf** package to import \`MPSZ-2019\` shapefile into R dataframe named \`mpsz\`. To enable the combined use of \`mpsz\` with \`BusStop\`, \`mpsz\` is configured with the **svy21** projected coordinate system, with a \`crs\` setting of 3414.
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial",
