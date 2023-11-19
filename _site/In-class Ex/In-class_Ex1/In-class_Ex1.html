@@ -174,13 +174,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link active" data-scroll-target="#getting-started">Getting Started</a></li>
-  <li><a href="#preparing-flow-data" id="toc-preparing-flow-data" class="nav-link" data-scroll-target="#preparing-flow-data">Preparing Flow Data</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">1. Overview</a></li>
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">2. Getting Started</a></li>
+  <li><a href="#preparing-flow-data" id="toc-preparing-flow-data" class="nav-link" data-scroll-target="#preparing-flow-data">3. Preparing Flow Data</a>
   <ul class="collapse">
-  <li><a href="#importing-passenger-volume-by-origin-destination-bus-stops" id="toc-importing-passenger-volume-by-origin-destination-bus-stops" class="nav-link" data-scroll-target="#importing-passenger-volume-by-origin-destination-bus-stops">Importing Passenger Volume by Origin-Destination Bus Stops</a></li>
-  <li><a href="#extracting-commuting-flow-data" id="toc-extracting-commuting-flow-data" class="nav-link" data-scroll-target="#extracting-commuting-flow-data">Extracting Commuting Flow Data</a></li>
-  <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data">Importing Geospatial Data</a></li>
-  <li><a href="#importing-planning-subzone-data" id="toc-importing-planning-subzone-data" class="nav-link" data-scroll-target="#importing-planning-subzone-data">Importing Planning Subzone Data</a></li>
+  <li><a href="#importing-passenger-volume-by-origin-destination-bus-stops" id="toc-importing-passenger-volume-by-origin-destination-bus-stops" class="nav-link" data-scroll-target="#importing-passenger-volume-by-origin-destination-bus-stops">3.1. Importing Passenger Volume by Origin-Destination Bus Stops</a></li>
+  <li><a href="#extracting-commuting-flow-data" id="toc-extracting-commuting-flow-data" class="nav-link" data-scroll-target="#extracting-commuting-flow-data">3.2. Extracting Commuting Flow Data</a></li>
+  <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data">3.3. Importing Geospatial Data</a></li>
+  <li><a href="#importing-planning-subzone-data" id="toc-importing-planning-subzone-data" class="nav-link" data-scroll-target="#importing-planning-subzone-data">3.4. Importing Planning Subzone Data</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -214,7 +215,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">November 19, 2023</p>
+      <p class="date-modified">November 20, 2023</p>
     </div>
   </div>
     
@@ -223,9 +224,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">1. Overview</h2>
 <p>Urban Mobility Analysis by using passenger volume by origin-destination bus stops.</p>
+</section>
 <section id="getting-started" class="level2">
-<h2 class="anchored" data-anchor-id="getting-started">Getting Started</h2>
+<h2 class="anchored" data-anchor-id="getting-started">2. Getting Started</h2>
 <p>The code chunk below loads the following packages:</p>
 <ul>
 <li><strong>tmap</strong>: for thematic mapping</li>
@@ -243,9 +247,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 </section>
 <section id="preparing-flow-data" class="level2">
-<h2 class="anchored" data-anchor-id="preparing-flow-data">Preparing Flow Data</h2>
+<h2 class="anchored" data-anchor-id="preparing-flow-data">3. Preparing Flow Data</h2>
 <section id="importing-passenger-volume-by-origin-destination-bus-stops" class="level3">
-<h3 class="anchored" data-anchor-id="importing-passenger-volume-by-origin-destination-bus-stops">Importing Passenger Volume by Origin-Destination Bus Stops</h3>
+<h3 class="anchored" data-anchor-id="importing-passenger-volume-by-origin-destination-bus-stops">3.1. Importing Passenger Volume by Origin-Destination Bus Stops</h3>
 <p>Firstly, we will import the <em>Passenger Volume by Origin-Destination Bus Stops</em> data set download from LTADataMall by using `read_csv()` of <strong>readr</strong> package and name the dataframe as `odbus`.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>odbus <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/origin_destination_bus_202308.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -257,7 +261,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 <section id="extracting-commuting-flow-data" class="level3">
-<h3 class="anchored" data-anchor-id="extracting-commuting-flow-data">Extracting Commuting Flow Data</h3>
+<h3 class="anchored" data-anchor-id="extracting-commuting-flow-data">3.2. Extracting Commuting Flow Data</h3>
 <p>The following code chunk extracts data related to commuting patterns on weekdays during the busy morning rush hours (7 am, 8 am, and 9 am).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>origtrip_7_9 <span class="ot">&lt;-</span> odbus <span class="sc">%&gt;%</span></span>
@@ -269,7 +273,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 <section id="importing-geospatial-data" class="level3">
-<h3 class="anchored" data-anchor-id="importing-geospatial-data">Importing Geospatial Data</h3>
+<h3 class="anchored" data-anchor-id="importing-geospatial-data">3.3. Importing Geospatial Data</h3>
 <p>The following code chunk uses `st_read()` function from the <strong>sf</strong> package to import `BusStop` shapefile into R dataframe named `BusStop`. It is configured with the <strong>svy21</strong> projected coordinate system, with a `crs` setting of 3414.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>busstop <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>,</span>
@@ -278,7 +282,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 <section id="importing-planning-subzone-data" class="level3">
-<h3 class="anchored" data-anchor-id="importing-planning-subzone-data">Importing Planning Subzone Data</h3>
+<h3 class="anchored" data-anchor-id="importing-planning-subzone-data">3.4. Importing Planning Subzone Data</h3>
 <p>The following code chunk uses `st_read()` function from the <strong>sf</strong> package to import `MPSZ-2019` shapefile into R dataframe named `mpsz`. To enable the combined use of `mpsz` with `BusStop`, `mpsz` is configured with the <strong>svy21</strong> projected coordinate system, with a `crs` setting of 3414.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>,</span>
