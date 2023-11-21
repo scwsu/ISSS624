@@ -11,6 +11,8 @@ website:
             href: Hands-on_Ex1/Hands-on_Ex1.html
           - text: "1B: Choropleth Mapping with R"
             href: Hands-on_Ex1/Hands-on_Ex1_b.html
+          - text: "2A: Spatial Weights and Application"
+            href: Hands-on_Ex2/Hands-on_Ex2_a.html
       - text: In-class Exercises
         menu: 
           - text: In-class Exercise 1

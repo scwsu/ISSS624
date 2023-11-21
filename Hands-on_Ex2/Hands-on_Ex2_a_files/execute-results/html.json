@@ -1,0 +1,14 @@
+{
+  "hash": "1827e766220791e5c5976f2cff729d66",
+  "result": {
+    "markdown": "---\ntitle: \"2A: Spatial Weights and Application\"\nauthor: \"Su Sandi Cho Win\"\ndate: \"21 November 2023\"\ndate-modified: \"last-modified\"\nformat: html\nexecute:\n  echo: true\n  eval: true\n  warning: false\neditor: visual\n---\n\n\n## 1. Overview\n\nIn this exercise, I learn to calculate spatial weights in R, which is an essential skill for spatial analysis. The core of my learning revolves around computing spatial weights, allowing me to understand the spatial relationships and dependencies within my data. Moreover, I gain hands-on experience in generating spatially lagged variables, which enables me to conduct in-depth analyses and interpret geospatial data with a nuanced perspective.\n\n## 2. Getting Started\n\nThe following code chunk installs and loads **sf**, **readr**, **dplyr** and **spdep** packages into R environment.\n\n::: callout-note\n**sf** package is used to import geospatial data into my working environment.\n\n**readr** package is used to load the data from a csv file.\n\n**dplyr** package is used to execute relation joings between datasets.\n\n**spdep** package is used to calculate spatial weights and compute spatially lagged variables.\n:::\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(sf, readr, dplyr, spdep)\n```\n:::\n\n\nThe data sets used are:\n\n-   Hunan county boundary layer, in ESRI shapefile format.\n\n-   Hunan_2012.csv which contains selected Hunan\\'s local development indicators in 2012.\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

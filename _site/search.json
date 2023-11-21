@@ -194,5 +194,26 @@
     "title": "Urban Mobility Analysis",
     "section": "",
     "text": "Urban Mobility Analysis by using passenger volume by origin-destination bus stops."
+  },
+  {
+    "objectID": "Hands-on_Ex2/Hands-on_Ex2_a.html",
+    "href": "Hands-on_Ex2/Hands-on_Ex2_a.html",
+    "title": "2A: Spatial Weights and Application",
+    "section": "",
+    "text": "In this exercise, I learn to calculate spatial weights in R, which is an essential skill for spatial analysis. The core of my learning revolves around computing spatial weights, allowing me to understand the spatial relationships and dependencies within my data. Moreover, I gain hands-on experience in generating spatially lagged variables, which enables me to conduct in-depth analyses and interpret geospatial data with a nuanced perspective."
+  },
+  {
+    "objectID": "Hands-on_Ex2/Hands-on_Ex2_a.html#overview",
+    "href": "Hands-on_Ex2/Hands-on_Ex2_a.html#overview",
+    "title": "2A: Spatial Weights and Application",
+    "section": "",
+    "text": "In this exercise, I learn to calculate spatial weights in R, which is an essential skill for spatial analysis. The core of my learning revolves around computing spatial weights, allowing me to understand the spatial relationships and dependencies within my data. Moreover, I gain hands-on experience in generating spatially lagged variables, which enables me to conduct in-depth analyses and interpret geospatial data with a nuanced perspective."
+  },
+  {
+    "objectID": "Hands-on_Ex2/Hands-on_Ex2_a.html#getting-started",
+    "href": "Hands-on_Ex2/Hands-on_Ex2_a.html#getting-started",
+    "title": "2A: Spatial Weights and Application",
+    "section": "2. Getting Started",
+    "text": "2. Getting Started\nThe following code chunk installs and loads sf, readr, dplyr and spdep packages into R environment.\n\n\n\n\n\n\nNote\n\n\n\nsf package is used to import geospatial data into my working environment.\nreadr package is used to load the data from a csv file.\ndplyr package is used to execute relation joings between datasets.\nspdep package is used to calculate spatial weights and compute spatially lagged variables.\n\n\n\npacman::p_load(sf, readr, dplyr, spdep)\n\nThe data sets used are:\n\nHunan county boundary layer, in ESRI shapefile format.\nHunan_2012.csv which contains selected Hunan's local development indicators in 2012."
   }
 ]
