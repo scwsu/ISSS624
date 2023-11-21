@@ -17,27 +17,29 @@ In this exercise, I learn to calculate spatial weights in R, which is an essenti
 
 ## 2. Getting Started
 
-The following code chunk installs and loads **sf**, **readr**, **dplyr** and **spdep** packages into R environment.
+The following code chunk installs and loads **sf**, **readr**, **dplyr, spdep, tmap** and **purrr** packages into R environment.
 
 ::: callout-note
 **sf** package is used to import geospatial data into my working environment.
 
-**readr** package is used to load the data from a csv file.
-
-**dplyr** package is used to execute relation joings between datasets.
-
 **spdep** package is used to calculate spatial weights and compute spatially lagged variables.
+
+**tmap** package is used to create thematic maps in R.
+
+**tidyverse** package is used to provide a unified and consistent set of data manipulation and visualization tools for data analysis and exploration.
+
+**knitr** package is used to enable dynamic report generation and literate programming.
 :::
 
 ```{r}
-pacman::p_load(sf, readr, dplyr, spdep)
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
 ```
 
 The data sets used are:
 
 -   Hunan county boundary layer, in ESRI shapefile format.
 
--   Hunan_2012.csv which contains selected Hunan\'s local development indicators in 2012.
+-   Hunan_2012.csv which contains selected Hunan's local development indicators in 2012.
 
 ## **3. Getting the Data Into R Environment**
 
@@ -159,7 +161,7 @@ Specifically, I need to extract the latitude and longitude of each centroid to c
 The **`map_dbl`** function from the **purrr** package is employed to map **`st_centroid`** over the geometry column of **us.bound**. To extract the longitude values, I used double bracket notation **`[[]]`** with **`1`**, which allowed me to get the first value (longitude) from each centroid. This method effectively provided the necessary longitude and latitude coordinates for each centroid in a separate dataframe, setting the stage for creating the connectivity graph.
 
 ```{r}
-longitude <- map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
+longitude <- purrr::map_dbl(hunan$geometry, ~st_centroid(.x)[[1]])
 ```
 
 Similar process is done to obtain the latitude values of the centroids, however with a crucial difference. Instead of accessing the first value of each centroid, I access the second value by using double bracket notation `[[2]]` in the mapping function. This approach allows me to extract the latitude, which is typically the second value in the coordinate pair of each centroid.
