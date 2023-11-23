@@ -133,6 +133,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <a class="dropdown-item" href="../Hands-on_Ex2/Hands-on_Ex2_a.html" rel="" target="">
  <span class="dropdown-text">2A: Spatial Weights and Application</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../Hands-on_Ex2/Hands-on_Ex2_b.html" rel="" target="">
+ <span class="dropdown-text">2B: Global Measures of Spatial Autocorrelation</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -240,7 +244,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">November 22, 2023</p>
+      <p class="date-modified">November 23, 2023</p>
     </div>
   </div>
     
@@ -251,7 +255,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">1. Overview</h2>
-<p>In this exercise, I learn to calculate spatial weights in R, which is an essential skill for spatial analysis. The core of my learning revolves around computing spatial weights, allowing me to understand the spatial relationships and dependencies within my data. Moreover, I gain hands-on experience in generating spatially lagged variables, which enables me to conduct in-depth analyses and interpret geospatial data with a nuanced perspective.</p>
+<p>In this exercise, I learn to calculate spatial weights in R. The core of my learning revolves around computing spatial weights, allowing me to understand the spatial relationships and dependencies within my data. Moreover, I gain hands-on experience in generating spatially lagged variables, which enables me to conduct in-depth analyses and interpret geospatial data with a nuanced perspective.</p>
 </section>
 <section id="getting-started" class="level2">
 <h2 class="anchored" data-anchor-id="getting-started">2. Getting Started</h2>
@@ -347,10 +351,9 @@ Note
 </section>
 <section id="computing-contiguity-spatial-weights" class="level2">
 <h2 class="anchored" data-anchor-id="computing-contiguity-spatial-weights">3.5. Computing Contiguity Spatial Weights</h2>
-<p>The following code chunk utilizes the <code>poly2nb()</code> function form the <strong>spdep</strong> package to create contiguity weight matrices for the study area. This function constructs a list of neighbors where the regions share contiguous boundaries and also allows for a <code>queen</code> argument, which can be set to <em>TRUE</em> (default setting) or <em>FALSE</em>. If the argument is not explicitly set to “<code>queen</code> = <em>FALSE”</em>, the function will generate a list of first-order neighbors based on the <code>Queen</code>’s contiguity criterion.</p>
 <section id="computing-queen-contiguity-based-neighbors" class="level3">
 <h3 class="anchored" data-anchor-id="computing-queen-contiguity-based-neighbors">3.5.1. Computing (QUEEN) Contiguity Based Neighbors</h3>
-<p>The following code chunk is used to compute <code>Queen</code> contiguity weight matrix.</p>
+<p>The following code chunk utilizes the <code>poly2nb()</code> function form the <strong>spdep</strong> package to create contiguity weight matrices for the study area. This function constructs a list of neighbors where the regions share contiguous boundaries and also allows for a <code>queen</code> argument, which can be set to <em>TRUE</em> (default setting) or <em>FALSE</em>. If the argument is not explicitly set to “<code>queen</code> = <em>FALSE”</em>, the function will generate a list of first-order neighbors based on the <code>Queen</code>’s contiguity criterion.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> <span class="fu">poly2nb</span>(hunan, <span class="at">queen=</span><span class="cn">TRUE</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(wm_q)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -877,10 +880,10 @@ Note
 <div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hunan<span class="sc">$</span>geometry, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(k1, coords, <span class="at">add=</span><span class="cn">TRUE</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">length=</span><span class="fl">0.08</span>, <span class="at">main=</span><span class="st">"1st nearest neighbours"</span>)</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hunan<span class="sc">$</span>geometry, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wm_d62, coords, <span class="at">add=</span><span class="cn">TRUE</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">0.6</span>, <span class="at">main=</span><span class="st">"Distance link"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hunan<span class="sc">$</span>geometry, <span class="at">main=</span><span class="st">"1st nearest neighbours"</span>, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(k1, coords, <span class="at">add=</span><span class="cn">TRUE</span>, <span class="at">col=</span><span class="st">"red"</span>, <span class="at">length=</span><span class="fl">0.08</span>)</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(hunan<span class="sc">$</span>geometry, <span class="at">main=</span><span class="st">"Distance link"</span>, <span class="at">border=</span><span class="st">"lightgrey"</span>)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wm_d62, coords, <span class="at">add=</span><span class="cn">TRUE</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">cex =</span> <span class="fl">0.6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="Hands-on_Ex2_a_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid" width="672"></p>
 </div>

@@ -13,7 +13,7 @@ editor: visual
 
 ## 1. Overview
 
-In this exercise, I learn to calculate spatial weights in R, which is an essential skill for spatial analysis. The core of my learning revolves around computing spatial weights, allowing me to understand the spatial relationships and dependencies within my data. Moreover, I gain hands-on experience in generating spatially lagged variables, which enables me to conduct in-depth analyses and interpret geospatial data with a nuanced perspective.
+In this exercise, I learn to calculate spatial weights in R. The core of my learning revolves around computing spatial weights, allowing me to understand the spatial relationships and dependencies within my data. Moreover, I gain hands-on experience in generating spatially lagged variables, which enables me to conduct in-depth analyses and interpret geospatial data with a nuanced perspective.
 
 ## 2. Getting Started
 
@@ -88,11 +88,9 @@ tmap_arrange(basemap, gdppc, asp=1, ncol=2)
 
 ## 3.5. Computing Contiguity Spatial Weights
 
-The following code chunk utilizes the `poly2nb()` function form the **spdep** package to create contiguity weight matrices for the study area. This function constructs a list of neighbors where the regions share contiguous boundaries and also allows for a `queen` argument, which can be set to *TRUE* (default setting) or *FALSE*. If the argument is not explicitly set to "`queen` = *FALSE"*, the function will generate a list of first-order neighbors based on the `Queen`'s contiguity criterion.
-
 ### 3.5.1. Computing (QUEEN) Contiguity Based Neighbors
 
-The following code chunk is used to compute `Queen` contiguity weight matrix.
+The following code chunk utilizes the `poly2nb()` function form the **spdep** package to create contiguity weight matrices for the study area. This function constructs a list of neighbors where the regions share contiguous boundaries and also allows for a `queen` argument, which can be set to *TRUE* (default setting) or *FALSE*. If the argument is not explicitly set to "`queen` = *FALSE"*, the function will generate a list of first-order neighbors based on the `Queen`'s contiguity criterion.
 
 ```{r}
 wm_q <- poly2nb(hunan, queen=TRUE)
@@ -275,10 +273,10 @@ plot(k1, coords, add=TRUE, col="red", length=0.08)
 
 ```{r}
 par(mfrow=c(1,2))
-plot(hunan$geometry, border="lightgrey")
-plot(k1, coords, add=TRUE, col="red", length=0.08, main="1st nearest neighbours")
-plot(hunan$geometry, border="lightgrey")
-plot(wm_d62, coords, add=TRUE, pch = 19, cex = 0.6, main="Distance link")
+plot(hunan$geometry, main="1st nearest neighbours", border="lightgrey")
+plot(k1, coords, add=TRUE, col="red", length=0.08)
+plot(hunan$geometry, main="Distance link", border="lightgrey")
+plot(wm_d62, coords, add=TRUE, pch = 19, cex = 0.6)
 ```
 :::
 

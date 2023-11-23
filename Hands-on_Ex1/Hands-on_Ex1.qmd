@@ -41,7 +41,7 @@ The data sets used are:
 
 ### 3.1. Importing Polygon Feature Data
 
-The following code chunk uses \`st_read()\` function from the **sf** package to import \`MP14_SUBZONE_WEB_PL\` shapefile into R as **polygon feature data** frame.
+The following code chunk uses `st_read()` function from the **sf** package to import `MP14_SUBZONE_WEB_PL` shapefile into R as **polygon feature data** frame.
 
 ::: callout-note
 When loading geospatial data in shapefile format, two arguments are utilized: firstly, `dsn` to specify the data path, and secondly, `layer` to indicate the name of the shapefile. It's not necessary to include file extensions such as .shp, .dbf, .prj, or .shx.
