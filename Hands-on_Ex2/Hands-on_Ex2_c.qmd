@@ -2,7 +2,7 @@
 title: "2C: Local Measures of Spatial Autocorrelation"
 author: "Su Sandi Cho Win"
 date: "23 November 2023"
-date-modified: "last-modified"
+date-modified: "24 November 2023"
 format: html
 execute:
   echo: true

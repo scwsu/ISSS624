@@ -21,8 +21,12 @@ website:
         menu: 
           - text: In-class Exercise 1
             href: In-class Ex/In-class_Ex1/In-class_Ex1.html
-          - text: In-class Exercise 2
-            #href: In-class Ex/In-class_Ex2/In-class_Ex2.html
+          - text: In-class Exercise 2A
+            href: In-class Ex/In-class_Ex2/In-class_Ex2.html
+          - text: In-class Exercise 2B
+            href: In-class Ex/In-class_Ex2/In-class_Ex2_GSLA.html
+          - text: In-class Exercise 2C
+            href: In-class Ex/In-class_Ex2/In-class_Ex2_EHSA.html
       - text: Take-home Exercises
         menu: 
           - text: Take-home Exercise 1

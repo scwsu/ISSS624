@@ -2,7 +2,7 @@
 title: "2A: Spatial Weights and Application"
 author: "Su Sandi Cho Win"
 date: "21 November 2023"
-date-modified: "last-modified"
+date-modified: "23 November 2023"
 format: html
 execute:
   echo: true

@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Su Sandi Cho Win">
-<meta name="dcterms.date" content="2023-11-19">
+<meta name="dcterms.date" content="2023-11-25">
 
-<title>ISSS624 - Urban Mobility Analysis</title>
+<title>ISSS624 - Global and Local Measures of Spatial Association - sfdep Methods</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -202,14 +202,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">1. Overview</a></li>
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">2. Getting Started</a></li>
-  <li><a href="#preparing-flow-data" id="toc-preparing-flow-data" class="nav-link" data-scroll-target="#preparing-flow-data">3. Preparing Flow Data</a>
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">2. Getting Started</a>
   <ul class="collapse">
-  <li><a href="#importing-passenger-volume-by-origin-destination-bus-stops" id="toc-importing-passenger-volume-by-origin-destination-bus-stops" class="nav-link" data-scroll-target="#importing-passenger-volume-by-origin-destination-bus-stops">3.1. Importing Passenger Volume by Origin-Destination Bus Stops</a></li>
-  <li><a href="#extracting-commuting-flow-data" id="toc-extracting-commuting-flow-data" class="nav-link" data-scroll-target="#extracting-commuting-flow-data">3.2. Extracting Commuting Flow Data</a></li>
-  <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data">3.3. Importing Geospatial Data</a></li>
-  <li><a href="#importing-planning-subzone-data" id="toc-importing-planning-subzone-data" class="nav-link" data-scroll-target="#importing-planning-subzone-data">3.4. Importing Planning Subzone Data</a></li>
+  <li><a href="#installing-and-loading-the-r-packages" id="toc-installing-and-loading-the-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-the-r-packages">2.1. Installing and Loading the R Packages</a></li>
   </ul></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data">3. The Data</a>
+  <ul class="collapse">
+  <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data">3.1. Importing Geospatial Data</a></li>
+  <li><a href="#importing-attribute-table" id="toc-importing-attribute-table" class="nav-link" data-scroll-target="#importing-attribute-table">3.2. Importing Attribute Table</a></li>
+  <li><a href="#combining-both-data-frame-by-using-left-join" id="toc-combining-both-data-frame-by-using-left-join" class="nav-link" data-scroll-target="#combining-both-data-frame-by-using-left-join">3.3. Combining Both Data Frame by Using Left Join</a></li>
+  <li><a href="#plotting-a-choropleth-map" id="toc-plotting-a-choropleth-map" class="nav-link" data-scroll-target="#plotting-a-choropleth-map">3.4. Plotting a Choropleth Map</a></li>
+  </ul></li>
+  <li><a href="#deriving-contiguity-weights" id="toc-deriving-contiguity-weights" class="nav-link" data-scroll-target="#deriving-contiguity-weights">4. Deriving Contiguity Weights</a>
+  <ul class="collapse">
+  <li><a href="#deriving-contiguity-weights-queens-method" id="toc-deriving-contiguity-weights-queens-method" class="nav-link" data-scroll-target="#deriving-contiguity-weights-queens-method">4.1. Deriving Contiguity Weights: Queen’s Method</a></li>
+  </ul></li>
+  <li><a href="#computing-local-morans-i" id="toc-computing-local-morans-i" class="nav-link" data-scroll-target="#computing-local-morans-i">5. Computing Local Moran’s I</a></li>
   </ul>
 </nav>
     </div>
@@ -218,7 +226,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Urban Mobility Analysis</h1>
+<h1 class="title">Global and Local Measures of Spatial Association - sfdep Methods</h1>
 </div>
 
 
@@ -235,14 +243,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 19, 2023</p>
+      <p class="date">November 25, 2023</p>
     </div>
   </div>
   
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">November 20, 2023</p>
+      <p class="date-modified">November 25, 2023</p>
     </div>
   </div>
     
@@ -253,113 +261,129 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">1. Overview</h2>
-<p>Urban Mobility Analysis by using passenger volume by origin-destination bus stops.</p>
 </section>
 <section id="getting-started" class="level2">
 <h2 class="anchored" data-anchor-id="getting-started">2. Getting Started</h2>
-<p>The code chunk below loads the following packages:</p>
+<section id="installing-and-loading-the-r-packages" class="level3">
+<h3 class="anchored" data-anchor-id="installing-and-loading-the-r-packages">2.1. Installing and Loading the R Packages</h3>
+<p>Four R Packages will be used for this in-class exercise, they are: <strong>sf</strong>, <strong>sfdep</strong>, <strong>tmap</strong>, <strong>tidyverse</strong>, <strong>knitr</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, tmap, tidyverse, knitr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="the-data" class="level2">
+<h2 class="anchored" data-anchor-id="the-data">3. The Data</h2>
+<p>For the purpose of this in-class, exercise, the <em>Hunan</em> data sets will be used. There are two data sets in this use case, they are:</p>
 <ul>
-<li><strong>tmap</strong>: for thematic mapping</li>
-<li><strong>sf</strong>: for geospatial data handling</li>
-<li><strong>tidyverse</strong>: for non-spatial data handling</li>
+<li><p><em>Hunan</em>, a geospatial data set in ESRI shapefile format, and</p></li>
+<li><p><em>Hunan_2012</em>, an attribute data set in csv format.</p></li>
 </ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, tmap, tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>The data used for this analysis includes:</p>
-<ul>
-<li><p>Subzone Boundary Data from the Master Plan 2019 (last updated Dec 2019) from <a href="https://beta.data.gov.sg/collections/1749/view">data.gov.sg</a>.</p></li>
-<li><p>Bus Stop Location Data (last updated Jul 2023) obtained from <a href="https://datamall.lta.gov.sg/content/datamall/en/static-data.html">LTADataMall</a>.</p></li>
-<li><p>Passenger Volume Data for Aug-Oct 2023, focusing on origin and destination bus stops, also retrieved from <a href="https://datamall.lta.gov.sg/content/datamall/en/dynamic-data.html">LTADataMall</a>.</p></li>
-</ul>
-</section>
-<section id="preparing-flow-data" class="level2">
-<h2 class="anchored" data-anchor-id="preparing-flow-data">3. Preparing Flow Data</h2>
-<section id="importing-passenger-volume-by-origin-destination-bus-stops" class="level3">
-<h3 class="anchored" data-anchor-id="importing-passenger-volume-by-origin-destination-bus-stops">3.1. Importing Passenger Volume by Origin-Destination Bus Stops</h3>
-<p>Firstly, we will import the <em>Passenger Volume by Origin-Destination Bus Stops</em> data set download from LTADataMall by using `read_csv()` of <strong>readr</strong> package and name the dataframe as `odbus`.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>odbus <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/origin_destination_bus_202308.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>To treat the numeric variables `ORIGIN_PT_CODE` and `DESTINATION_PT_CODE` as categorical grouping variables in R, they should be converted to factors. This transformation allows R to recognize and work with them as categorical variables.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>odbus<span class="sc">$</span>ORIGIN_PT_CODE <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(odbus<span class="sc">$</span>ORIGIN_PT_CODE)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>odbus<span class="sc">$</span>DESTINATION_PT_CODE <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(odbus<span class="sc">$</span>DESTINATION_PT_CODE)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="extracting-commuting-flow-data" class="level3">
-<h3 class="anchored" data-anchor-id="extracting-commuting-flow-data">3.2. Extracting Commuting Flow Data</h3>
-<p>The following code chunk extracts data related to commuting patterns on weekdays during the busy morning rush hours (7 am, 8 am, and 9 am).</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>origtrip_7_9 <span class="ot">&lt;-</span> odbus <span class="sc">%&gt;%</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(DAY_TYPE <span class="sc">==</span> <span class="st">"WEEKDAY"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(TIME_PER_HOUR <span class="sc">&gt;=</span> <span class="dv">7</span> <span class="sc">&amp;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>           TIME_PER_HOUR <span class="sc">&lt;=</span> <span class="dv">9</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(ORIGIN_PT_CODE) <span class="sc">%&gt;%</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TRIPS =</span> <span class="fu">sum</span>(TOTAL_TRIPS))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
 <section id="importing-geospatial-data" class="level3">
-<h3 class="anchored" data-anchor-id="importing-geospatial-data">3.3. Importing Geospatial Data</h3>
-<p>The following code chunk uses `st_read()` function from the <strong>sf</strong> package to import `BusStop` shapefile into R dataframe named `BusStop`. It is configured with the <strong>svy21</strong> projected coordinate system, with a `crs` setting of 3414.</p>
+<h3 class="anchored" data-anchor-id="importing-geospatial-data">3.1. Importing Geospatial Data</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>busstop <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>,</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">layer =</span> <span class="st">"BusStop"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
-<section id="importing-planning-subzone-data" class="level3">
-<h3 class="anchored" data-anchor-id="importing-planning-subzone-data">3.4. Importing Planning Subzone Data</h3>
-<p>The following code chunk uses `st_read()` function from the <strong>sf</strong> package to import `MPSZ-2019` shapefile into R dataframe named `mpsz`. To enable the combined use of `mpsz` with `BusStop`, `mpsz` is configured with the <strong>svy21</strong> projected coordinate system, with a `crs` setting of 3414.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>,</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">layer =</span> <span class="st">"MPSZ-2019"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">3414</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">layer =</span> <span class="st">"Hunan"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `MPSZ-2019' from data source 
-  `D:\scwsu\ISSS624\In-class Ex\In-class_Ex1\data\geospatial' 
+<pre><code>Reading layer `Hunan' from data source 
+  `D:\scwsu\ISSS624\In-class Ex\In-class_Ex2\data\geospatial' 
   using driver `ESRI Shapefile'
-Simple feature collection with 332 features and 6 fields
-Geometry type: MULTIPOLYGON
+Simple feature collection with 88 features and 7 fields
+Geometry type: POLYGON
 Dimension:     XY
-Bounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775
+Bounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812
 Geodetic CRS:  WGS 84</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mpsz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Simple feature collection with 332 features and 6 fields
-Geometry type: MULTIPOLYGON
-Dimension:     XY
-Bounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33
-Projected CRS: SVY21 / Singapore TM
-First 10 features:
-                 SUBZONE_N SUBZONE_C       PLN_AREA_N PLN_AREA_C       REGION_N
-1              MARINA EAST    MESZ01      MARINA EAST         ME CENTRAL REGION
-2         INSTITUTION HILL    RVSZ05     RIVER VALLEY         RV CENTRAL REGION
-3           ROBERTSON QUAY    SRSZ01  SINGAPORE RIVER         SR CENTRAL REGION
-4  JURONG ISLAND AND BUKOM    WISZ01  WESTERN ISLANDS         WI    WEST REGION
-5             FORT CANNING    MUSZ02           MUSEUM         MU CENTRAL REGION
-6         MARINA EAST (MP)    MPSZ05    MARINE PARADE         MP CENTRAL REGION
-7                   SUDONG    WISZ03  WESTERN ISLANDS         WI    WEST REGION
-8                  SEMAKAU    WISZ02  WESTERN ISLANDS         WI    WEST REGION
-9           SOUTHERN GROUP    SISZ02 SOUTHERN ISLANDS         SI CENTRAL REGION
-10                 SENTOSA    SISZ01 SOUTHERN ISLANDS         SI CENTRAL REGION
-   REGION_C                       geometry
-1        CR MULTIPOLYGON (((33222.98 29...
-2        CR MULTIPOLYGON (((28481.45 30...
-3        CR MULTIPOLYGON (((28087.34 30...
-4        WR MULTIPOLYGON (((14557.7 304...
-5        CR MULTIPOLYGON (((29542.53 31...
-6        CR MULTIPOLYGON (((35279.55 30...
-7        WR MULTIPOLYGON (((15772.59 21...
-8        WR MULTIPOLYGON (((19843.41 21...
-9        CR MULTIPOLYGON (((30870.53 22...
-10       CR MULTIPOLYGON (((26879.04 26...</code></pre>
 </div>
-</div>
-
-
 </section>
+<section id="importing-attribute-table" class="level3">
+<h3 class="anchored" data-anchor-id="importing-attribute-table">3.2. Importing Attribute Table</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>hunan2012 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Hunan_2012.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="combining-both-data-frame-by-using-left-join" class="level3">
+<h3 class="anchored" data-anchor-id="combining-both-data-frame-by-using-left-join">3.3. Combining Both Data Frame by Using Left Join</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>hunan_GDPPC <span class="ot">&lt;-</span> <span class="fu">left_join</span>(hunan,hunan2012) <span class="sc">%&gt;%</span>      </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In order to retain the geospatial properties, the left data frame must be sf data.frame (i.e.&nbsp;<em>hunan</em>).</p>
+</div>
+</div>
+</section>
+<section id="plotting-a-choropleth-map" class="level3">
+<h3 class="anchored" data-anchor-id="plotting-a-choropleth-map">3.4. Plotting a Choropleth Map</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>equal <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(hunan_GDPPC) <span class="sc">+</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"GDPPC"</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">5</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"equal"</span>) <span class="sc">+</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Equal interval classification"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>quantile <span class="ot">&lt;-</span> <span class="fu">tm_shape</span>(hunan_GDPPC) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"GDPPC"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">5</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">style =</span> <span class="st">"quantile"</span>) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Equal quantile classification"</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(equal, </span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>             quantile, </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>             <span class="at">asp=</span><span class="dv">1</span>, </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="In-class_Ex2_GSLA_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="deriving-contiguity-weights" class="level2">
+<h2 class="anchored" data-anchor-id="deriving-contiguity-weights">4. Deriving Contiguity Weights</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#wm_q &lt;- poly2nb(hunan, </span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                <span class="co">#queen=TRUE)</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#summary(wm_q)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="deriving-contiguity-weights-queens-method" class="level3">
+<h3 class="anchored" data-anchor-id="deriving-contiguity-weights-queens-method">4.1. Deriving Contiguity Weights: Queen’s Method</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>wm_q<span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">style =</span> <span class="st">"W"</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notice that <code>st_weights()</code> provides tree arguments, they are:</p>
+<ul>
+<li><p><em>nb</em>: A neighbor list object as created by st_neighbors().</p></li>
+<li><p><em>style</em>: Default “W” for row standardized weights. The style argument can take values such as “W,” “B,” “C,” “U,” “minmax,” and “S.” “B” represents basic binary coding, “W” stands for row-standardized (sums over all links to n), “C” denotes globally standardized (sums over all links to n), “U” is equal to “C” divided by the number of neighbors (sums over all links to unity), and “S” corresponds to the variance-stabilizing coding scheme proposed by Tiefelsdorf et al.&nbsp;1999, p.&nbsp;167-168 (sums over all links to n).</p></li>
+</ul>
+</section>
+</section>
+<section id="computing-local-morans-i" class="level2">
+<h2 class="anchored" data-anchor-id="computing-local-morans-i">5. Computing Local Moran’s I</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lisa <span class="ot">&lt;-</span> wm_q <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">local_moran =</span> <span class="fu">local_moran</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    GDPPC, nb, wt, <span class="at">nsim =</span> <span class="dv">99</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">.before =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(local_moran)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The output of <code>local_moran()</code> is a sf data frame containing the columns ii, eli, var_ii, z_ii, p_ii, p_ii_sim, and p_folded_sim.</p>
+
+
 </section>
 
 </main> <!-- /main -->
