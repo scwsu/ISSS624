@@ -1,0 +1,201 @@
+---
+title: "EHSA"
+author: "Su Sandi Cho Win"
+date: "25 November 2023"
+date-modified: "25 November 2023"
+format: html
+execute:
+  echo: true
+  eval: true
+  warning: false
+editor: visual
+---
+
+## 1. Overview
+
+## 2. Getting Started
+
+### 2.1. Installing and Loading the R Packages
+
+Four R Packages will be used for this in-class exercise, they are: **sf**, **sfdep**, **tmap**, **tidyverse**, **knitr**.
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse, plotly, knitr, Kendall)
+```
+
+## 3. The Data
+
+For the purpose of this in-class, exercise, the *Hunan* data sets will be used. There are two data sets in this use case, they are:
+
+-   *Hunan*, a geospatial data set in ESRI shapefile format, and
+
+-   *Hunan_2012*, an attribute data set in csv format.
+
+### 3.1. Importing Geospatial Data
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial",                       
+                 layer = "Hunan")
+```
+
+### 3.2. Importing Attribute Table
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+### 3.3. Combining Both Data Frame by Using Left Join
+
+```{r}
+hunan_GDPPC <- left_join(hunan,hunan2012) %>%         
+  select(1:4, 7, 15)
+```
+
+::: callout-important
+In order to retain the geospatial properties, the left data frame must be sf data.frame (i.e. *hunan*).
+:::
+
+### 3.4. Plotting a Choropleth Map
+
+```{r}
+equal <- tm_shape(hunan_GDPPC) +
+  tm_fill("GDPPC",
+          n = 5,
+          style = "equal") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal interval classification")
+
+quantile <- tm_shape(hunan_GDPPC) +
+  tm_fill("GDPPC",
+          n = 5,
+          style = "quantile") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Equal quantile classification")
+
+tmap_arrange(equal, 
+             quantile, 
+             asp=1, 
+             ncol=2)
+```
+
+## 4. Deriving Contiguity Weights
+
+```{r}
+#wm_q <- poly2nb(hunan, 
+                #queen=TRUE)
+#summary(wm_q)
+```
+
+### 4.1. Deriving Contiguity Weights: Queen's Method
+
+```{r}
+wm_q<- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1)
+```
+
+Notice that `st_weights()` provides tree arguments, they are:
+
+-   *nb*: A neighbor list object as created by st_neighbors().
+
+-   *style*: Default "W" for row standardized weights. The style argument can take values such as "W," "B," "C," "U," "minmax," and "S." "B" represents basic binary coding, "W" stands for row-standardized (sums over all links to n), "C" denotes globally standardized (sums over all links to n), "U" is equal to "C" divided by the number of neighbors (sums over all links to unity), and "S" corresponds to the variance-stabilizing coding scheme proposed by Tiefelsdorf et al. 1999, p. 167-168 (sums over all links to n).
+
+## 5. Computing Local Moran's I
+
+```{r}
+wm_q<- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1)
+```
+
+The output of `local_moran()` is a sf data frame containing the columns ii, eli, var_ii, z_ii, p_ii, p_ii_sim, and p_folded_sim.
+
+```{r}
+GDPPC <- read.csv("data/aspatial/Hunan_GDPPC.csv")
+```
+
+Creating a Time Series Cube
+
+```{r}
+GDPPC_st <- spacetime(GDPPC, hunan,
+                      .loc_col = "County",
+                      .time_col = "Year")
+```
+
+Next, `is_spacetime_cube()` of **sfdep** package will be used to verify if *GDPPC_st* is indeed a space-time cube object.
+
+```{r}
+is_spacetime_cube(GDPPC_st)
+```
+
+## 6. Computing Gi\*
+
+```{r}
+GDPPC_nb <- GDPPC_st %>%
+  activate("geometry") %>%
+  mutate(nb = include_self(st_contiguity(geometry)),
+         wt = st_inverse_distance(nb, geometry,
+                                  scale = 1,
+                                  alpha = 1),
+         .before = 1) %>%
+  set_nbs("nb") %>%
+  set_wts("wt")
+```
+
+```{r}
+#gi_stars <- GDPPC_nb %>%
+  #group_by(Year) %>%
+  #mutate(gi_star = local_gstar_perm(
+    #GDPPC, nb, wt)) %>%
+  #unnest(gi_star)
+```
+
+```{r}
+#cbg <- gi_stars %>%
+  #ungroup()  %>%
+  #filter(County == "Changsha") |>
+  #select(County, Year, gi_star)
+```
+
+```{r}
+#ggplot(data = cbg,
+        #aes(x = Year,
+            #y = gi_star)) +
+  #geom_line() +
+  #theme_light()
+```
+
+## Arrange to Show Significant Emerging Hot and Cold Spots
+
+### Performing Emerging Hotspot Analysis
+
+```{r}
+ehsa <- emerging_hotspot_analysis(
+  x = GDPPC_st,
+  .var = "GDPPC",
+  k = 1,
+  nsim = 99
+)
+```
+
+```{r}
+#hunan_ehsa <- 
+```
+
+### Visualizing EHSA
+
+```{r}
+#ehsa_sig <- hunan_ehsa %>%
+  #filter(p_value <0.05)
+#tmap_mode("plot")
+#tm_shape(hunan_ehsa) +
+  #tm_polygons() + 
+  #tm_borders(alpha = 0.5) +
+#tm_shape(ehsa_sig) +
+  #tm_fill("classification") +
+  #tm_borders(alpha = 0.4)
+```
