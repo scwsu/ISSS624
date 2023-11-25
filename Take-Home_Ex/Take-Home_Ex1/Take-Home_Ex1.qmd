@@ -1,0 +1,236 @@
+---
+title: "Geospatial Analytics for Public Good"
+author: "Su Sandi Cho Win"
+date: "25 November 2023"
+date-modified: "25 November 2023"
+format: html
+execute:
+  echo: true
+  eval: true
+  warning: false
+editor: visual
+---
+
+## 1. Overview
+
+The digital transformation of urban infrastructure, including buses, taxis, mass transit, utilities, and roads, has generated vast datasets that serve as a foundation for tracking movement patterns over space and time. Pervasive technologies like GPS and RFID, widely adopted in vehicles, contribute to this trend. For example, smart cards and GPS devices collect route and ridership data on public buses. These extensive datasets likely contain valuable patterns that offer insights into observed phenomena. By deepening our understanding of human mobility in urban areas can improve urban management and provide vital information for both public and private urban transport providers, enhancing their decision-making and competitiveness.
+
+In practical terms, the utilization of these extensive location-aware datasets has predominantly been confined to rudimentary tracking and mapping using Geographic Information System (GIS) applications. This limitation stems primarily from the conventional GIS's inherent lack of robust capabilities for effectively analyzing and modeling spatial and spatio-temporal data.
+
+### 1.1. Objective
+
+Exploratory Spatial Data Analysis (ESDA) represents a powerful approach with the capacity to tackle intricate societal challenges. Within the scope of this study, the objective is to employ suitable Local Indicators of Spatial Association (GLISA) and Emerging Hot Spot Analysis (EHSA) methodologies. This will enable us to unveil the spatial and spatio-temporal mobility patterns of public bus passengers in Singapore.
+
+## 2. Getting Started
+
+The following code chunk installs and loads **sf**, **sfdep**, **tmap**, **tidyverse, knitr, dplyr, Kendall, hexbin** packages into R environment. [*pacman()*](https://cran.r-project.org/web/packages/pacman/readme/README.html) is a R package management tool.
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse, plotly, knitr, dplyr, Kendall, hexbin)
+```
+
+## 3. Data Preparation
+
+### 3.1. Data
+
+The datasets used for this study are:
+
+-   Master Plan 2019 Planning Sub-zone Geographic Information Systems (GIS) data set of URA from [data.gov.sg](https://beta.data.gov.sg/),
+
+-   Passenger Volume by Origin Destination Bus Stops from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en.html),
+
+-   Bus Stop Location dataset from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en.html)
+
+### 3.2. Importing the Data into R Environment
+
+#### **3.2.1. Importing Geospatial Data into R**
+
+```{r}
+busstop <- st_read(dsn = "data/geospatial",
+                   layer = "BusStop") %>%
+  st_transform(crs = 3414)
+glimpse(busstop)
+```
+
+import *MPSZ-2019* downloaded from eLearn into RStudio and save it as a sf data frame called `mpsz`.
+
+```{r}
+mpsz <- st_read(dsn = "data/geospatial",
+                   layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
+```
+
+#### **3.3.2. Importing Attribute Data into R**
+
+Firstly, we will import the *Passenger Volume by Origin Destination Bus Stops* data set downloaded from LTA DataMall by using `read_csv()` of **readr** package.
+
+```{r}
+odbus <- read_csv("data/aspatial/origin_destination_bus_202308.csv")
+glimpse(odbus)
+```
+
+```{r}
+# Using tidyverse functions to convert these data values into factor data type.
+odbus$ORIGIN_PT_CODE <- as.factor(odbus$ORIGIN_PT_CODE)
+odbus$DESTINATION_PT_CODE <- as.factor(odbus$DESTINATION_PT_CODE) 
+glimpse(odbus)
+```
+
+#### 
+
+#### 3.3.3. **Extracting the study data**
+
+```{r}
+origin7_9 <- odbus %>%
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 7 &
+           TIME_PER_HOUR <= 9) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+kable(head(origin7_9))
+```
+
+We will save the output in rds format for future used.
+
+```{r}
+write_rds(origin7_9, "data/rds/origin7_9.rds")
+```
+
+The code chunk below will be used to import the save origin7_9.rds into R environment.
+
+```{r}
+origin7_9 <- read_rds("data/rds/origin7_9.rds")
+```
+
+### **3.4. Data Wrangling - Geospatial Data**
+
+```{r}
+busstop_mpsz <- st_intersection(busstop, mpsz) %>%
+  select(BUS_STOP_N, SUBZONE_C) %>%
+  st_drop_geometry()
+```
+
+```{r}
+write_rds(busstop_mpsz, "data/rds/busstop_mpsz.csv")  
+```
+
+```{r}
+origin_SZ <- left_join(origin7_9 , busstop_mpsz,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_SZ = SUBZONE_C) %>%
+  group_by(ORIGIN_SZ) %>%
+  summarise(TOT_TRIPS = sum(TRIPS))
+```
+
+```{r}
+duplicate <- origin_SZ %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+```
+
+```{r}
+origintrip_SZ <- left_join(mpsz, 
+                           origin_SZ,
+                           by = c("SUBZONE_C" = "ORIGIN_SZ"))
+```
+
+```{r}
+area_honeycomb_grid <- st_make_grid(busstop, c(500), what = "polygon", square = FALSE)
+
+# To sf and add grid ID
+honeycomb_grid_sf = st_sf(area_honeycomb_grid) %>%
+  # add grid ID
+  mutate(grid_id = 1:length(lengths(area_honeycomb_grid)))
+
+# count number of points in each grid
+# https://gis.stackexchange.com/questions/323698/counting-points-in-polygons-with-sf-package-of-r
+honeycomb_grid_sf$n_colli = lengths(st_intersects(honeycomb_grid_sf, busstop))
+
+# remove grid without value of 0 (i.e. no points in side that grid)
+honeycomb_count = filter(honeycomb_grid_sf, n_colli > 0)
+```
+
+```{r}
+tmap_mode("view")
+
+map_honeycomb = tm_shape(honeycomb_count) +
+  tm_fill(
+    col = "n_colli",
+    palette = "Reds",
+    style = "cont",
+    title = "Number of collisions",
+    id = "grid_id",
+    showNA = FALSE,
+    alpha = 0.6,
+    popup.vars = c(
+      "Number of collisions: " = "n_colli"
+    ),
+    popup.format = list(
+      n_colli = list(format = "f", digits = 0)
+    )
+  ) +
+  tm_borders(col = "grey40", lwd = 0.7)
+
+map_honeycomb
+```
+
+## 4. Exploratory Data Analysis
+
+## 5. Exploratory Spatial Data Analysis
+
+### 5.1. **Global Spatial Autocorrelation**
+
+#### 5.1.1. **Spatial Weights Matrix**
+
+#### 5.1.2. **Contiguity-based Spatial Weights**
+
+#### 5.1.2.1. **Contiguity-based (Queen) Spatial Weight Contiguity**
+
+#### 5.1.2.2. **Contiguity-based (Rook) Spatial Weight Contiguity**
+
+#### 5.1.3. **Distance-based Contiguity Weight Matrix**
+
+#### 5.1.3.1. **Fixed Distance Weight Matrix**
+
+#### 5.1.3.2. **Adaptive Distance-based Weight Matrix**
+
+#### 5.1.4. **Which spatial weight matrix to use?**
+
+#### 5.1.5. **Row-Standardised Weights Matrix**
+
+#### 5.1.6. **Computing Global Spatial Autocorrelation Statistics**
+
+#### 5.1.6.1. **Moran's I**
+
+#### 5.1.6.2. **Geary's C**
+
+#### 5.1.7. **Spatial Correlogram**
+
+#### 5.1.7.1. **Moran's I Correlogram**
+
+#### 5.1.7.2. **Geary's C Correlogram**
+
+#### 5.2. **Local Spatial Autocorrelation Statistics**
+
+#### 5.2.1. **Cluster and Outlier Analysis**
+
+#### 5.2.1.1. **Local Moran's I**
+
+#### 5.2.1.2. **Anselin's Moran Scatterplot**
+
+#### 5.2.1.3. **LISA Cluster Maps**
+
+#### 5.2.1.4. **Interpretation of Results**
+
+#### 5.2.2. **Hot Spot Area Analysis**
+
+#### 5.2.2.1. **Getis and Ord's G-Statistics**
+
+#### 5.2.2.2. **Interpretation of Results**
+
+## 6. Conclusion
+
+### 6.1. Future Work
