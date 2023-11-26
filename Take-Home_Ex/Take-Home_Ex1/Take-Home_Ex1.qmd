@@ -23,10 +23,10 @@ Exploratory Spatial Data Analysis (ESDA) represents a powerful approach with the
 
 ## 2. Getting Started
 
-The following code chunk installs and loads **sf**, **sfdep**, **tmap**, **tidyverse, knitr, dplyr, Kendall, hexbin** packages into R environment. [*pacman()*](https://cran.r-project.org/web/packages/pacman/readme/README.html) is a R package management tool.
+The following code chunk installs and loads **sf**, **sfdep**, **tmap**, **tidyverse, knitr, dplyr, hexbin** packages into R environment. [*pacman()*](https://cran.r-project.org/web/packages/pacman/readme/README.html) is a R package management tool.
 
 ```{r}
-pacman::p_load(sf, sfdep, tmap, tidyverse, plotly, knitr, dplyr, Kendall, hexbin)
+pacman::p_load(sf, sfdep, tmap, tidyverse, plotly, knitr, dplyr, hexbin)
 ```
 
 ## 3. Data Preparation
@@ -80,102 +80,350 @@ glimpse(odbus)
 
 #### 3.3.3. **Extracting the study data**
 
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
 ```{r}
-origin7_9 <- odbus %>%
+origin6_9 <- odbus %>%
   filter(DAY_TYPE == "WEEKDAY") %>%
-  filter(TIME_PER_HOUR >= 7 &
+  filter(TIME_PER_HOUR >= 6 &
            TIME_PER_HOUR <= 9) %>%
   group_by(ORIGIN_PT_CODE) %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 
-kable(head(origin7_9))
+kable(head(origin6_9))
 ```
 
-We will save the output in rds format for future used.
+We will save the output in rds format for future use.
 
 ```{r}
-write_rds(origin7_9, "data/rds/origin7_9.rds")
+write_rds(origin6_9, "data/rds/origin6_9.rds")
 ```
 
-The code chunk below will be used to import the save origin7_9.rds into R environment.
+The follwing code chunk will be used to import the saved origin6_9.rds into R environment.
 
 ```{r}
-origin7_9 <- read_rds("data/rds/origin7_9.rds")
+origin6_9 <- read_rds("data/rds/origin6_9.rds")
 ```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+origin17_20 <- odbus %>%
+  filter(DAY_TYPE == "WEEKDAY") %>%
+  filter(TIME_PER_HOUR >= 17 &
+           TIME_PER_HOUR <= 20) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+kable(head(origin17_20))
+```
+
+We will save the output in rds format for future use.
+
+```{r}
+write_rds(origin17_20, "data/rds/origin17_20.rds")
+```
+
+The following code chunk will be used to import the saved origin17_20. rds into R environment.
+
+```{r}
+origin17_20 <- read_rds("data/rds/origin17_20.rds")
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+origin11_14 <- odbus %>%
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
+  filter(TIME_PER_HOUR >= 11 &
+           TIME_PER_HOUR <= 14) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+kable(head(origin11_14))
+```
+
+We will save the output in rds format for future use.
+
+```{r}
+write_rds(origin11_14, "data/rds/origin11_14.rds")
+```
+
+The following code chunk will be used to import the saved origin11_14.rds into R environment.
+
+```{r}
+origin11_14 <- read_rds("data/rds/origin11_14.rds")
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+origin16_19 <- odbus %>%
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
+  filter(TIME_PER_HOUR >= 16 &
+           TIME_PER_HOUR <= 19) %>%
+  group_by(ORIGIN_PT_CODE) %>%
+  summarise(TRIPS = sum(TOTAL_TRIPS))
+
+kable(head(origin16_19))
+```
+
+We will save the output in rds format for future use.
+
+```{r}
+write_rds(origin16_19, "data/rds/origin16_19.rds")
+```
+
+The following code chunk will be used to import the saved origin16_19.rds into R environment.
+
+```{r}
+origin16_19 <- read_rds("data/rds/origin16_19.rds")
+```
+:::
 
 ### **3.4. Data Wrangling - Geospatial Data**
 
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
 ```{r}
-busstop_mpsz <- st_intersection(busstop, mpsz) %>%
-  select(BUS_STOP_N, SUBZONE_C) %>%
-  st_drop_geometry()
+origin6_9_busstop <- left_join(busstop, origin6_9,
+            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
+origin6_9_busstop
 ```
 
 ```{r}
-write_rds(busstop_mpsz, "data/rds/busstop_mpsz.csv")  
-```
-
-```{r}
-origin_SZ <- left_join(origin7_9 , busstop_mpsz,
-            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
-  rename(ORIGIN_BS = ORIGIN_PT_CODE,
-         ORIGIN_SZ = SUBZONE_C) %>%
-  group_by(ORIGIN_SZ) %>%
-  summarise(TOT_TRIPS = sum(TRIPS))
-```
-
-```{r}
-duplicate <- origin_SZ %>%
+duplicate <- origin6_9_busstop %>%
   group_by_all() %>%
   filter(n()>1) %>%
   ungroup()
 ```
 
+## Weekday Afternoon Peak 5pm to 8pm
+
 ```{r}
-origintrip_SZ <- left_join(mpsz, 
-                           origin_SZ,
-                           by = c("SUBZONE_C" = "ORIGIN_SZ"))
+origin17_20_busstop <- left_join(busstop, origin17_20,
+            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
+origin17_20_busstop
 ```
 
 ```{r}
-area_honeycomb_grid <- st_make_grid(busstop, c(500), what = "polygon", square = FALSE)
+duplicate <- origin17_20_busstop %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+origin11_14_busstop <- left_join(busstop, origin11_14,
+            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
+origin11_14_busstop
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+origin16_19_busstop <- left_join(busstop, origin16_19,
+            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
+origin16_19_busstop
+```
+:::
+
+3.5. Visualizing
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+area_honeycomb_grid_6_9 <- st_make_grid(origin6_9_busstop, c(500), what = "polygon", square = FALSE)
 
 # To sf and add grid ID
-honeycomb_grid_sf = st_sf(area_honeycomb_grid) %>%
+honeycomb_grid_sf_6_9 <- st_sf(area_honeycomb_grid_6_9) %>%
   # add grid ID
-  mutate(grid_id = 1:length(lengths(area_honeycomb_grid)))
+  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_6_9)))
 
-# count number of points in each grid
-# https://gis.stackexchange.com/questions/323698/counting-points-in-polygons-with-sf-package-of-r
-honeycomb_grid_sf$n_colli = lengths(st_intersects(honeycomb_grid_sf, busstop))
+# Perform spatial intersection to count points within each hexagon
+point_counts_6_9 <- st_intersection(honeycomb_grid_sf_6_9, origin6_9_busstop) %>%
+  group_by(grid_id) %>%
+  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
+
+# Merge the point counts back into the honeycomb grid
+honeycomb_grid_sf_6_9 <- honeycomb_grid_sf_6_9 %>%
+  st_join(point_counts_6_9, by = "grid_id")
 
 # remove grid without value of 0 (i.e. no points in side that grid)
-honeycomb_count = filter(honeycomb_grid_sf, n_colli > 0)
+honeycomb_count_6_9 <- filter(honeycomb_grid_sf_6_9, TOT_TRIPS > 0)
 ```
 
 ```{r}
 tmap_mode("view")
 
-map_honeycomb = tm_shape(honeycomb_count) +
+map_honeycomb_6_9 <- tm_shape(honeycomb_count_6_9) +
   tm_fill(
-    col = "n_colli",
+    col = "TOT_TRIPS",
     palette = "Reds",
     style = "cont",
-    title = "Number of collisions",
+    title = "Number of Trips",
     id = "grid_id",
     showNA = FALSE,
     alpha = 0.6,
     popup.vars = c(
-      "Number of collisions: " = "n_colli"
+      "Number of trips: " = "TOT_TRIPS"
     ),
     popup.format = list(
-      n_colli = list(format = "f", digits = 0)
+      TOT_TRIPS = list(format = "f", digits = 0)
     )
   ) +
   tm_borders(col = "grey40", lwd = 0.7)
 
-map_honeycomb
+map_honeycomb_6_9
 ```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+area_honeycomb_grid_17_20 <- st_make_grid(origin17_20_busstop, c(500), what = "polygon", square = FALSE)
+
+# To sf and add grid ID
+honeycomb_grid_sf_17_20 <- st_sf(area_honeycomb_grid_17_20) %>%
+  # add grid ID
+  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_17_20)))
+
+# Perform spatial intersection to count points within each hexagon
+point_counts_17_20 <- st_intersection(honeycomb_grid_sf_17_20, origin17_20_busstop) %>%
+  group_by(grid_id) %>%
+  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
+
+# Merge the point counts back into the honeycomb grid
+honeycomb_grid_sf_17_20 <- honeycomb_grid_sf_17_20 %>%
+  st_join(point_counts_17_20, by = "grid_id")
+
+# remove grid without value of 0 (i.e. no points in side that grid)
+honeycomb_count_17_20 <- filter(honeycomb_grid_sf_17_20, TOT_TRIPS > 0)
+```
+
+```{r}
+tmap_mode("view")
+
+map_honeycomb_17_20 <- tm_shape(honeycomb_count_17_20) +
+  tm_fill(
+    col = "TOT_TRIPS",
+    palette = "Reds",
+    style = "cont",
+    title = "Number of Trips",
+    id = "grid_id",
+    showNA = FALSE,
+    alpha = 0.6,
+    popup.vars = c(
+      "Number of trips: " = "TOT_TRIPS"
+    ),
+    popup.format = list(
+      TOT_TRIPS = list(format = "f", digits = 0)
+    )
+  ) +
+  tm_borders(col = "grey40", lwd = 0.7)
+
+map_honeycomb_17_20
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+area_honeycomb_grid_11_14 <- st_make_grid(origin11_14_busstop, c(500), what = "polygon", square = FALSE)
+
+# To sf and add grid ID
+honeycomb_grid_sf_11_14 <- st_sf(area_honeycomb_grid_11_14) %>%
+  # add grid ID
+  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_11_14)))
+
+# Perform spatial intersection to count points within each hexagon
+point_counts_11_14 <- st_intersection(honeycomb_grid_sf_11_14, origin11_14_busstop) %>%
+  group_by(grid_id) %>%
+  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
+
+# Merge the point counts back into the honeycomb grid
+honeycomb_grid_sf_11_14 <- honeycomb_grid_sf_11_14 %>%
+  st_join(point_counts_11_14, by = "grid_id")
+
+# remove grid without value of 0 (i.e. no points in side that grid)
+honeycomb_count_11_14 <- filter(honeycomb_grid_sf_11_14, TOT_TRIPS > 0)
+```
+
+```{r}
+tmap_mode("view")
+
+tm_shape(honeycomb_count_11_14) +
+  tm_fill(
+    col = "TOT_TRIPS",
+    palette = "Reds",
+    style = "cont",
+    title = "Number of Trips",
+    id = "grid_id",
+    showNA = FALSE,
+    alpha = 0.6,
+    popup.vars = c(
+      "Number of trips: " = "TOT_TRIPS"
+    ),
+    popup.format = list(
+      TOT_TRIPS = list(format = "f", digits = 0)
+    )
+  ) +
+  tm_grid(alpha =0.2) +
+  tm_borders(col = "grey40", lwd = 0.7)
+
+#map_honeycomb_11_14
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+area_honeycomb_grid_16_19 <- st_make_grid(origin16_19_busstop, c(500), what = "polygon", square = FALSE)
+
+# To sf and add grid ID
+honeycomb_grid_sf_16_19 <- st_sf(area_honeycomb_grid_16_19) %>%
+  # add grid ID
+  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_16_19)))
+
+# Perform spatial intersection to count points within each hexagon
+point_counts_16_19 <- st_intersection(honeycomb_grid_sf_16_19, origin16_19_busstop) %>%
+  group_by(grid_id) %>%
+  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
+
+# Merge the point counts back into the honeycomb grid
+honeycomb_grid_sf_16_19 <- honeycomb_grid_sf_16_19 %>%
+  st_join(point_counts_16_19, by = "grid_id")
+
+# remove grid without value of 0 (i.e. no points in side that grid)
+honeycomb_count_16_19 <- filter(honeycomb_grid_sf_16_19, TOT_TRIPS > 0)
+```
+
+```{r}
+tmap_mode("view")
+
+map_honeycomb_16_19 <- tm_shape(honeycomb_count_16_19) +
+  tm_fill(
+    col = "TOT_TRIPS",
+    palette = "Reds",
+    style = "cont",
+    title = "Number of Trips",
+    id = "grid_id",
+    showNA = FALSE,
+    alpha = 0.6,
+    popup.vars = c(
+      "Number of trips: " = "TOT_TRIPS"
+    ),
+    popup.format = list(
+      TOT_TRIPS = list(format = "f", digits = 0)
+    )
+  ) +
+  tm_borders(col = "grey40", lwd = 0.7)
+
+map_honeycomb_16_19
+```
+:::
 
 ## 4. Exploratory Data Analysis
 
