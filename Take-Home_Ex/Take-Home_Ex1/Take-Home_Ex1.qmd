@@ -234,6 +234,36 @@ origin16_19_busstop
 
 3.5. Visualizing
 
+Preparing a reusable function to process input data
+
+```{r}
+honeycomb_grid <- function(input_data) {
+  area_honeycomb_grid_current <-
+    st_make_grid(input_data, c(500), what = "polygon", square = FALSE)
+  
+  # To sf and add grid ID
+  honeycomb_grid_sf_current <- st_sf(area_honeycomb_grid_current) %>%
+    # add grid ID
+    mutate(grid_id = 1:length(lengths(area_honeycomb_grid_current)))
+  
+  # Perform spatial intersection to count points within each hexagon
+  point_counts_current <-
+    st_intersection(honeycomb_grid_sf_current, input_data) %>%
+    group_by(grid_id) %>%
+    summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
+  
+  # Merge the point counts back into the honeycomb grid
+  honeycomb_grid_sf_current <- honeycomb_grid_sf_current %>%
+    st_join(point_counts_current, by = "grid_id")
+  
+  # remove grid without value of 0 (i.e. no points in side that grid)
+  honeycomb_count_current <-
+    filter(honeycomb_grid_sf_current, TOT_TRIPS > 0)
+  
+  return(honeycomb_count_current)
+}
+```
+
 Preparing a reusable function to plot the honeycomb map
 
 ```{r}
@@ -266,112 +296,29 @@ draw_honeycomb_map <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-area_honeycomb_grid_6_9 <- st_make_grid(origin6_9_busstop, c(500), what = "polygon", square = FALSE)
-
-# To sf and add grid ID
-honeycomb_grid_sf_6_9 <- st_sf(area_honeycomb_grid_6_9) %>%
-  # add grid ID
-  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_6_9)))
-
-# Perform spatial intersection to count points within each hexagon
-point_counts_6_9 <- st_intersection(honeycomb_grid_sf_6_9, origin6_9_busstop) %>%
-  group_by(grid_id) %>%
-  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
-
-# Merge the point counts back into the honeycomb grid
-honeycomb_grid_sf_6_9 <- honeycomb_grid_sf_6_9 %>%
-  st_join(point_counts_6_9, by = "grid_id")
-
-# remove grid without value of 0 (i.e. no points in side that grid)
-honeycomb_count_6_9 <- filter(honeycomb_grid_sf_6_9, TOT_TRIPS > 0)
-```
-
-```{r}
-
-draw_honeycomb_map(honeycomb_count_6_9)
-
-
+honeycomb_grid(origin6_9_busstop) %>% 
+  draw_honeycomb_map
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-area_honeycomb_grid_17_20 <- st_make_grid(origin17_20_busstop, c(500), what = "polygon", square = FALSE)
-
-# To sf and add grid ID
-honeycomb_grid_sf_17_20 <- st_sf(area_honeycomb_grid_17_20) %>%
-  # add grid ID
-  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_17_20)))
-
-# Perform spatial intersection to count points within each hexagon
-point_counts_17_20 <- st_intersection(honeycomb_grid_sf_17_20, origin17_20_busstop) %>%
-  group_by(grid_id) %>%
-  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
-
-# Merge the point counts back into the honeycomb grid
-honeycomb_grid_sf_17_20 <- honeycomb_grid_sf_17_20 %>%
-  st_join(point_counts_17_20, by = "grid_id")
-
-# remove grid without value of 0 (i.e. no points in side that grid)
-honeycomb_count_17_20 <- filter(honeycomb_grid_sf_17_20, TOT_TRIPS > 0)
-```
-
-```{r}
-draw_honeycomb_map(honeycomb_count_17_20)
+honeycomb_grid(origin17_20_busstop) %>% 
+  draw_honeycomb_map
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-area_honeycomb_grid_11_14 <- st_make_grid(origin11_14_busstop, c(500), what = "polygon", square = FALSE)
-
-# To sf and add grid ID
-honeycomb_grid_sf_11_14 <- st_sf(area_honeycomb_grid_11_14) %>%
-  # add grid ID
-  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_11_14)))
-
-# Perform spatial intersection to count points within each hexagon
-point_counts_11_14 <- st_intersection(honeycomb_grid_sf_11_14, origin11_14_busstop) %>%
-  group_by(grid_id) %>%
-  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
-
-# Merge the point counts back into the honeycomb grid
-honeycomb_grid_sf_11_14 <- honeycomb_grid_sf_11_14 %>%
-  st_join(point_counts_11_14, by = "grid_id")
-
-# remove grid without value of 0 (i.e. no points in side that grid)
-honeycomb_count_11_14 <- filter(honeycomb_grid_sf_11_14, TOT_TRIPS > 0)
-```
-
-```{r}
-draw_honeycomb_map(honeycomb_count_11_14)
+honeycomb_grid(origin11_14_busstop) %>% 
+  draw_honeycomb_map
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-area_honeycomb_grid_16_19 <- st_make_grid(origin16_19_busstop, c(500), what = "polygon", square = FALSE)
-
-# To sf and add grid ID
-honeycomb_grid_sf_16_19 <- st_sf(area_honeycomb_grid_16_19) %>%
-  # add grid ID
-  mutate(grid_id = 1:length(lengths(area_honeycomb_grid_16_19)))
-
-# Perform spatial intersection to count points within each hexagon
-point_counts_16_19 <- st_intersection(honeycomb_grid_sf_16_19, origin16_19_busstop) %>%
-  group_by(grid_id) %>%
-  summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
-
-# Merge the point counts back into the honeycomb grid
-honeycomb_grid_sf_16_19 <- honeycomb_grid_sf_16_19 %>%
-  st_join(point_counts_16_19, by = "grid_id")
-
-# remove grid without value of 0 (i.e. no points in side that grid)
-honeycomb_count_16_19 <- filter(honeycomb_grid_sf_16_19, TOT_TRIPS > 0)
-```
-
-```{r}
-draw_honeycomb_map(honeycomb_count_16_19)
+honeycomb_grid(origin16_19_busstop) %>% 
+  draw_honeycomb_map
 ```
 :::
 
