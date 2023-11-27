@@ -232,7 +232,7 @@ origin16_19_busstop
 ```
 :::
 
-3.5. Visualizing
+## 4. Exploratory Data Analysis
 
 Preparing a reusable function to process input data
 
@@ -287,7 +287,7 @@ draw_honeycomb_map <- function(input_data) {
       )
     ) +
     tm_borders(col = "grey40", lwd = 0.7)
-  
+
   return (map_output)
 }
 ```
@@ -296,33 +296,31 @@ draw_honeycomb_map <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-honeycomb_grid(origin6_9_busstop) %>% 
-  draw_honeycomb_map
+honeycomb_grid_6_9 <- honeycomb_grid(origin6_9_busstop)
+draw_honeycomb_map(honeycomb_grid_6_9)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-honeycomb_grid(origin17_20_busstop) %>% 
-  draw_honeycomb_map
+honeycomb_grid_17_20 <- honeycomb_grid(origin17_20_busstop)
+draw_honeycomb_map(honeycomb_grid_17_20)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-honeycomb_grid(origin11_14_busstop) %>% 
-  draw_honeycomb_map
+honeycomb_grid_11_14 <- honeycomb_grid(origin11_14_busstop)
+draw_honeycomb_map(honeycomb_grid_11_14)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-honeycomb_grid(origin16_19_busstop) %>% 
-  draw_honeycomb_map
+honeycomb_grid_16_19 <- honeycomb_grid(origin16_19_busstop)
+draw_honeycomb_map(honeycomb_grid_16_19)
 ```
 :::
-
-## 4. Exploratory Data Analysis
 
 ## 5. Exploratory Spatial Data Analysis
 
@@ -342,19 +340,17 @@ To perform global spatial autocorrelation analysis, our initial step involves th
 
 In contiguity-based methods, neighboring areas are determined based on shared boundaries, with variations in how these boundaries are defined in different methods. Rook contiguity, for instance, considers neighbors that share a common edge. Conversely, Queen contiguity deems neighbors as those who share either a common vertex or edge. Consequently, Queen contiguity is more inclusive compared to Rook contiguity.
 
-The distinctions between these two approaches are elucidated in the accompanying illustration.
+The distinctions between these two approaches are elucidated in the following illustration.
 
 ![](Rooks-vs-Queens-Contiguity.png){fig-align="center"}
 
 In distance-based contiguity, there are two distinct weighting schemes: fixed weighting and adaptive weighting. The former approach deems two regions as neighbors if they fall within a predetermined distance of each other. In the latter scheme, every region is assigned an equal number of neighbors, with the specific number of neighbors predetermined. For instance, if we set k = 8 neighbors, it will categorize the nearest eight regions as neighbors for each.
 
-The choice of which spatial weights method to employ hinges on the geographical characteristics of the area under consideration. In cases where the geographical area comprises numerous isolated islands, opting for a contiguity-based matrix might lead to many regions lacking neighbors. Similarly, if the features (polygons) exhibit a wide range of sizes, encompassing both very large and relatively smaller ones, the use of a contiguity-based matrix may result in larger features having a disproportionate number of neighbors. This could potentially introduce a smoothing effect due to the higher number of neighbors for larger features, potentially skewing the analytical outcomes.
+The choice of which spatial weights method to employ hinges on the geographical characteristics of the area under consideration. In cases where the geographical area comprises numerous isolated areas, opting for a contiguity-based matrix might lead to many regions lacking neighbors. Similarly, if the features (polygons) exhibit a wide range of sizes, encompassing both very large and relatively smaller ones, the use of a contiguity-based matrix may result in larger features having a disproportionate number of neighbors. This could potentially introduce a smoothing effect due to the higher number of neighbors for larger features, potentially skewing the analytical outcomes.
 
 #### 5.1.2. **Contiguity-based Spatial Weights**
 
-In broad terms, spatial weights can be categorized into two main types: contiguity weights and distance-based weights. This section will focus on the creation of contiguity spatial weights using the **sfdep** package.
-
-Deriving contiguity spatial weights involves two key steps:
+This section will focus on the creation of contiguity spatial weights using the **sfdep** package. Deriving contiguity spatial weights involves two key steps:
 
 1.  Identifying the contiguity neighbor list using the [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) function from the **sfdep** package.
 
@@ -367,27 +363,72 @@ Throughout this section, we will delve into the process of obtaining the contigu
 The following code chunk utilizes [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) to derive a contiguity neighbour list by using Queen's method.
 
 ```{r}
-nb_queen <- mpsz %>% 
-  mutate(nb = st_contiguity(geometry),
+nb_queen <- function(input_data){
+  output_nb_queen <- input_data %>% 
+    mutate(nb = st_contiguity(area_honeycomb_grid_current),
          .before = 1)
+  
+  return(output_nb_queen)
+}
 ```
 
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
 ```{r}
-summary(nb_queen$nb)
+nb_queen_6_9 <- nb_queen(honeycomb_grid_6_9)
+summary(nb_queen_6_9$nb)
 ```
 
-The summary report above shows that there are 332 area units in Singapore. The most connected area units have 17 neighbors. There are two area units with only one neighbor.
+The summary report above shows that there are 1493 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
 
 ```{r}
-nb_queen
-```
-
-The print shows that polygon 1 has five neighbors. They are polygons number 6, 36, 52, 70 and 91.
-
-```{r}
-kable(head(nb_queen,
+kable(head(nb_queen_6_9,
            n=10))
 ```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+nb_queen_17_20 <- nb_queen(honeycomb_grid_17_20)
+summary(nb_queen_17_20$nb)
+```
+
+The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 37 area units with only one neighbor.
+
+```{r}
+kable(head(nb_queen_17_20,
+           n=10))
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+nb_queen_11_14 <- nb_queen(honeycomb_grid_11_14)
+summary(nb_queen_11_14$nb)
+```
+
+The summary report above shows that there are 1499 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
+
+```{r}
+kable(head(nb_queen_11_14,
+           n=10))
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+nb_queen_16_19 <- nb_queen(honeycomb_grid_16_19)
+summary(nb_queen_16_19$nb)
+```
+
+The summary report above shows that there are 1489 area units in Singapore. The most connected area units have 6 neighbors. There are 42 area units with only one neighbor.
+
+```{r}
+kable(head(nb_queen_16_19,
+           n=10))
+```
+:::
 
 #### 5.1.2.2. **Contiguity-based (Rook) Spatial Weight Contiguity**
 
