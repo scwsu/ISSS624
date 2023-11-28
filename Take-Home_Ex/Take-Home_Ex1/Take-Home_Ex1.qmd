@@ -433,28 +433,73 @@ kable(head(nb_queen_16_19,
 #### 5.1.2.2. **Contiguity-based (Rook) Spatial Weight Contiguity**
 
 ```{r}
-nb_rook <- mpsz %>% 
-  mutate(nb = st_contiguity(geometry,
-                            queen = FALSE),
+nb_rook <- function(input_data){
+  output_nb_rook <- input_data %>% 
+    mutate(nb = st_contiguity(area_honeycomb_grid_current,
+                              queen = FALSE),
          .before = 1)
+  
+  return(output_nb_rook)
+}
 ```
 
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
 ```{r}
-summary(nb_rook$nb)
+nb_rook_6_9 <- nb_rook(honeycomb_grid_6_9)
+summary(nb_rook_6_9$nb)
 ```
 
-The summary report above shows that there are 332 area units in Singapore. The most connected area units have 16 neighbors. There are two area units with only one neighbor.
+The summary report above shows that there are 1493 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
 
 ```{r}
-nb_rook
-```
-
-The print shows that polygon 1 has five neighbors. They are polygons number 6, 36, 52, 70 and 91.
-
-```{r}
-kable(head(nb_rook,
+kable(head(nb_rook_6_9,
            n=10))
 ```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+nb_rook_17_20 <- nb_rook(honeycomb_grid_17_20)
+summary(nb_rook_17_20$nb)
+```
+
+The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 37 area units with only one neighbor.
+
+```{r}
+kable(head(nb_rook_17_20,
+           n=10))
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+nb_rook_11_14 <- nb_rook(honeycomb_grid_11_14)
+summary(nb_rook_11_14$nb)
+```
+
+The summary report above shows that there are 1499 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
+
+```{r}
+kable(head(nb_rook_11_14,
+           n=10))
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+nb_rook_16_19 <- nb_rook(honeycomb_grid_16_19)
+summary(nb_rook_16_19$nb)
+```
+
+The summary report above shows that there are 1489 area units in Singapore. The most connected area units have 6 neighbors. There are 42 area units with only one neighbor.
+
+```{r}
+kable(head(nb_rook_16_19,
+           n=10))
+```
+:::
 
 #### 5.1.3. **Distance-based Contiguity Weight Matrix**
 
@@ -468,45 +513,97 @@ There are three commonly employed types of distance-based spatial weights:
 
 #### 5.1.3.1. **Fixed Distance Weight Matrix**
 
-```{r}
-geo <- sf::st_geometry(mpsz)
-nb <- st_knn(geo, longlat = TRUE)
-dists <- unlist(st_nb_dists(geo, nb))
-```
-
-Now, we will go ahead to derive summary statistics of the nearest neighbor distances vector (i.e. dists) by usimgn the following code chunk.
+Now, we will go ahead to derive summary statistics of the nearest neighbor distances vector (i.e. dists) by using the following code chunk.
 
 ```{r}
-summary(dists)
+wmfd_dists <- function(input_data){
+  geo <- sf::st_geometry(input_data)
+  nb <- st_knn(st_geometry(input_data), longlat = TRUE)
+  dists <- unlist(st_nb_dists(geo, nb))
+  # summary(dists)
+  return(dists)
+}
+
+tab_content <- function(input_data){
+  result <- summary(wmfd_dists(input_data))
+  return(result)
+}
 ```
 
-The summary statistics report above shows that the maximum nearest neighbor distance is 10130.8km. By using a threshold value of 10000km will ensure that each area will have at least one neighbor.
+The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
 
-Now we will go ahead to compute the fixed distance weights by using the code chunk below.
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
 
 ```{r}
-wm_fd <- mpsz %>%
-  mutate(nb = st_dist_band(geometry,
-                           upper = 10200),
-               wt = st_weights(nb),
-               .before = 1)
+tab_content(honeycomb_grid_6_9)
 ```
+
+The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+
+## Weekday Afternoon Peak 5pm to 9pm
 
 ```{r}
-longitude <- map_dbl(mpsz$geometry, ~st_centroid(.x)[[1]])
-latitude <- map_dbl(mpsz$geometry, ~st_centroid(.x)[[2]])
-coords <- c(longitude, latitude)
-head(coords, 5)
+tab_content(honeycomb_grid_17_20)
 ```
+
+The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+
+## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-par(mfrow = c(1,2))
-plot(mpsz$geometry, border = "lightgrey",main="1st nearest neighbours" )
-plot(dists, coords, add = TRUE, col = "red", length = 0.88, )
-
-plot(mpsz$geometry, border = "lightgrey", main = "Distance Link")
-plot(wm_fd, coords, add = TRUE, pch = 19, cex = 0.6)
+tab_content(honeycomb_grid_11_14)
 ```
+
+The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4583 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+tab_content(honeycomb_grid_16_19)
+```
+
+The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4583 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+:::
+
+The summary statistics report above shows that the maximum nearest neighbor distance is 4583 units. By using a threshold value of 4583 units will ensure that each area will have at least one neighbor. Now we will go ahead to compute the fixed distance weights by using the code chunk below.
+
+```{r}
+wm_fd <- function(input_data) {
+  output <- input_data %>%
+    mutate(nb = st_dist_band(area_honeycomb_grid_current,
+                        upper = 4583),
+      wt = st_weights(nb),
+      .before = 1)
+  return(output)
+}
+```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+wm_fd(honeycomb_grid_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+wm_fd(honeycomb_grid_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+wm_fd(honeycomb_grid_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+wm_fd(honeycomb_grid_16_19)
+```
+:::
 
 #### 5.1.3.2. **Adaptive Distance-based Weight Matrix**
 
@@ -515,12 +612,41 @@ To address the problem of an uneven distribution of neighbors in a fixed distanc
 As a general guideline, we will set k = 8, meaning that each region will be assigned exactly 8 neighbors.
 
 ```{r}
-wm_ad <- mpsz %>% 
-  mutate(nb = st_knn(geometry,
-                     k=8),
-         wt = st_weights(nb),
-               .before = 1)
+wm_ad <- function(input_data) {
+  output <- input_data %>%
+    mutate(nb = st_knn(area_honeycomb_grid_current,
+                  k = 8),
+      wt = st_weights(nb),
+      .before = 1)
+  return(output)
+}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+wm_ad(honeycomb_grid_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+wm_ad(honeycomb_grid_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+wm_ad(honeycomb_grid_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+wm_ad(honeycomb_grid_16_19)
+```
+:::
 
 #### 5.1.3.3. Inverse distance weights (IDW)
 
@@ -531,13 +657,45 @@ The following code chunk utilizes:
 -   [`st_inverse_distance()`](https://sfdep.josiahparry.com/reference/st_inverse_distance.html) to calculate inverse distance weights of neighbors on the nb list.
 
 ```{r}
-wm_idw <- mpsz %>%
-  mutate(nb = st_contiguity(geometry),
-         wts = st_inverse_distance(nb, geometry,
-                                   scale = 1,
-                                   alpha = 1),
-         .before = 1)
+wm_idw <- function(input_data) {
+  output <- input_data %>%
+    mutate(
+      nb = st_contiguity(area_honeycomb_grid_current),
+      wts = st_inverse_distance(nb,
+        area_honeycomb_grid_current,
+        scale = 1,
+        alpha = 1),
+      .before = 1)
+  
+  return(output)
+}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+wm_idw(honeycomb_grid_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+wm_idw(honeycomb_grid_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+wm_idw(honeycomb_grid_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+wm_idw(honeycomb_grid_16_19)
+```
+:::
 
 #### 5.1.4. **Which spatial weight matrix to use?**
 
@@ -545,9 +703,11 @@ The choice of a spatial weight matrix to use depends on the geographical area un
 
 Here are the summarized reasons for our choice:
 
-1.  Nigeria comprises 761 LGAs with varying sizes. Therefore, a contiguity-based matrix would result in larger LGAs having more neighbors and smaller LGAs having fewer neighbors, potentially distorting our analysis. Thus, distance-based methods are favored.
+1.   Since the uniform grid has been disrupted by removing hexagons, an adaptive approach (like k-nearest neighbors) will be more appropriate. This method ensures that each hexagon has a set number of neighbors, compensating for any irregularities in the grid caused by the removal of zero-trip areas.
 
-2.  As previously mentioned, the fixed distance-based method has the drawback that some regions would have only one neighbor, while the average number of neighbors for regions is 23. Statistical tests for regions with only one neighbor may not be valid.
+2.  The adaptive method can effectively deal with the non-contiguity issue, ensuring that each hexagon still considers an appropriate neighborhood set, even if some adjacent hexagons are missing.
+
+3.  With missing hexagons, contiguity-based methods (like Rook or Queen) might not accurately reflect the spatial relationships because they rely on the assumption of a continuous, uninterrupted grid.
 
 Taking these factors into account, our selection will be the adaptive distance-based spatial weight matrix.
 
@@ -556,12 +716,45 @@ Taking these factors into account, our selection will be the adaptive distance-b
 With the weight matrix chosen, the next step is to assign weights to each neighboring polygon. In this process, every neighboring polygon will be given equal weight (style="W") by allocating the fraction 1/(number of neighbors) to each adjacent area. This corresponds to what is referred to as a row-standardized matrix, where each row in the matrix totals to 1.
 
 ```{r}
-wm_q <- mpsz %>%
-  mutate(nb = st_contiguity(geometry),
-         wt = st_weights(nb,
-                         style = "W"),
-         .before = 1) 
+wm_q <- function(input_data) {
+  output <- input_data %>%
+    mutate(nb = st_contiguity(area_honeycomb_grid_current),
+      wt = st_weights(nb,
+                      style = "W"),
+      .before = 1)
+  return(output)
+}
+
+#tab_content <- function(input_data){
+  #return(wm_q(input_data))
+#}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+wm_q(honeycomb_grid_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+tab_content(honeycomb_grid_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+tab_content(honeycomb_grid_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+tab_content(honeycomb_grid_16_19)
+```
+:::
 
 #### 5.1.6. **Computing Global Spatial Autocorrelation Statistics**
 
@@ -717,12 +910,6 @@ In lisa sf data.frame, we can find three fields contain the LISA categories. The
 #### 5.2.1.3. **LISA Cluster Maps**
 
 #### 5.2.1.4. **Interpretation of Results**
-
-#### 5.2.2. **Hot Spot Area Analysis**
-
-#### 5.2.2.1. **Getis and Ord's G-Statistics**
-
-#### 5.2.2.2. **Interpretation of Results**
 
 ## 6. Conclusion
 
