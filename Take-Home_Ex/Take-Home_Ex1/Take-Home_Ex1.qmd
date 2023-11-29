@@ -783,7 +783,6 @@ moranI <- function(input_data) {
 tab_content <- function(input_data){
   return(moranI(input_data))
 }
-
 ```
 
 ::: panel-tabset
@@ -816,20 +815,44 @@ glimpse(moranI_16_19)
 ```
 :::
 
-```{r}
-
-glimpse(moranI)
-```
-
 #### **5.1.6.1.1. Performing Global Moran's I test**
 
-In general, Moran's I test will be performed instead of just computing the Moran's I statistics. With sfdep package, Moran's I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
+In general, Moran's I test will be performed instead of just computing the Moran's I statistics. With **sfdep** package, Moran's I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
 
 ```{r}
-global_moran_test(wm_q$GDPPC,
-                       wm_q$nb,
-                       wm_q$wt)
+tab_content <- function(input_data) {
+  output <- global_moran_test(input_data$TOT_TRIPS,
+                              input_data$nb,
+                              input_data$wt)
+  return(output)
+}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+tab_content(rswm_ad_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+tab_content(rswm_ad_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+tab_content(rswm_ad_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+tab_content(rswm_ad_16_19)
+```
+:::
 
 #### 5.1.6.1.2. **Performing Global Moran'I permutation test**
 
@@ -844,11 +867,40 @@ set.seed(1234)
 Next, `global_moran_perm()` is used to perform Monte Carlo simulation.
 
 ```{r}
-global_moran_perm(wm_q$GDPPC,
-                       wm_q$nb,
-                       wm_q$wt,
-                  nsim = 99)
+tab_content <- function(input_data) {
+  output <- global_moran_perm(input_data$TOT_TRIPS,
+                              input_data$nb,
+                              input_data$wt,
+                              nsim = 99)
+  return(output)
+}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+tab_content(rswm_ad_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+tab_content(rswm_ad_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+tab_content(rswm_ad_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+tab_content(rswm_ad_16_19)
+```
+:::
 
 The report above show that the p-value is smaller than alpha value of 0.05. Hence, reject the null hypothesis that the spatial patterns spatial independent. Because the Moran's I statistics is greater than 0. We can infer the spatial distribution shows sign of clustering.
 
@@ -857,12 +909,48 @@ The report above show that the p-value is smaller than alpha value of 0.05. Henc
 In this section, you will learn how to compute Local Moran's I of GDPPC at county level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package.
 
 ```{r}
-lisa <- wm_q %>% 
-  mutate(local_moran = local_moran(
-    GDPPC, nb, wt, nsim = 99),
-         .before = 1) %>%
-  unnest(local_moran)
+lisa <- function(input_data) {
+  output <- rswm_ad_6_9 %>%
+    mutate(local_moran = local_moran(TOT_TRIPS, nb, wt, nsim = 99),
+           .before = 1) %>%
+    unnest(local_moran)
+  return(output)
+}
+
+tab_content <- function(input_data){
+  return(lisa(input_data))
+}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+lisa_6_9 <- tab_content(rswm_ad_6_9)
+lisa_6_9
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+lisa_17_20 <- (rswm_ad_17_20)
+lisa_17_20
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+lisa_11_14 <- tab_content(rswm_ad_11_14)
+lisa_11_14 
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+lisa_16_19 <- tab_content(rswm_ad_16_19)
+lisa_16_19
+```
+:::
 
 The output of `local_moran()` is a sf data.frame containing the columns ii, eii, var_ii, z_ii, p_ii, p_ii_sim, and p_folded_sim.
 
@@ -883,12 +971,12 @@ The output of `local_moran()` is a sf data.frame containing the columns ii, eii,
 In this code chunk below, tmap functions are used prepare a choropleth map by using value in the *ii* field.
 
 ```{r}
-tmap_mode("plot")
-tm_shape(lisa) +
+tmap_mode("view")
+tm_shape(lisa_6_9) +
   tm_fill("ii") + 
   tm_borders(alpha = 0.5) +
-  tm_view(set.zoom.limits = c(6,8)) +
-  tm_layout(main.title = "local Moran's I of GDPPC",
+  tm_view(set.zoom.limits = c(10, 20)) +
+  tm_layout(main.title = "local Moran's I of Total Trips",
             main.title.size = 0.8)
 ```
 
