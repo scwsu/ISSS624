@@ -906,7 +906,7 @@ The report above show that the p-value is smaller than alpha value of 0.05. Henc
 
 #### 5.1.6.2. **Computing Local Moran's I**
 
-In this section, you will learn how to compute Local Moran's I of GDPPC at county level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package.
+In this section, you will learn how to compute Local Moran's I of GDPPC at county level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package.
 
 ```{r}
 lisa <- function(input_data) {
@@ -933,7 +933,7 @@ lisa_6_9
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-lisa_17_20 <- (rswm_ad_17_20)
+lisa_17_20 <- tab_content(rswm_ad_17_20)
 lisa_17_20
 ```
 
@@ -971,50 +971,119 @@ The output of `local_moran()` is a sf data.frame containing the columns ii, eii,
 In this code chunk below, tmap functions are used prepare a choropleth map by using value in the *ii* field.
 
 ```{r}
-tmap_mode("view")
-tm_shape(lisa_6_9) +
-  tm_fill("ii") + 
-  tm_borders(alpha = 0.5) +
-  tm_view(set.zoom.limits = c(10, 20)) +
-  tm_layout(main.title = "local Moran's I of Total Trips",
-            main.title.size = 0.8)
+local_moranI <- function(input_data) {
+  output <- tmap_mode("view") +
+    tm_shape(input_data) +
+    tm_fill("ii") +
+    tm_borders(alpha = 0.5) +
+    tm_view(set.zoom.limits = c(11, 20)) +
+    tm_layout(main.title = "local Moran's I of Total Trips",
+              main.title.size = 0.8)
+  return(output)
+}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+local_moranI(lisa_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+local_moranI(lisa_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+local_moranI(lisa_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+local_moranI(lisa_16_19)
+```
+:::
 
 #### 5.1.6.2.2. **Visualising p-value of local Moran's I**
 
 In the code chunk below, tmap functions are used prepare a choropleth map by using value in the *p_ii_sim* field.
 
 ```{r}
-tmap_mode("plot")
-tm_shape(lisa) +
-  tm_fill("p_ii_sim") + 
-  tm_borders(alpha = 0.5) +
-   tm_layout(main.title = "p-value of local Moran's I",
-            main.title.size = 0.8)
+local_moranI_pvalue <- function(input_data) {
+  tmap_mode("view") +
+    tm_shape(input_data) +
+    tm_fill("p_ii_sim") +
+    tm_borders(alpha = 0.5) +
+    tm_layout(main.title = "p-value of local Moran's I",
+              main.title.size = 0.8) 
+}
 ```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+```{r}
+local_moranI_pvalue(lisa_6_9)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+local_moranI_pvalue(lisa_17_20)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+local_moranI_pvalue(lisa_11_14)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+local_moranI_pvalue(lisa_16_19)
+```
+:::
 
 #### 5.1.6.2.3. **Visuaising local Moran's I and p-value**
 
 For effective comparison, it will be better for us to plot both maps next to each other as shown below.
 
 ```{r}
-tmap_mode("plot")
-map1 <- tm_shape(lisa) +
-  tm_fill("ii") + 
-  tm_borders(alpha = 0.5) +
-  tm_view(set.zoom.limits = c(6,8)) +
-  tm_layout(main.title = "local Moran's I of GDPPC",
-            main.title.size = 0.8)
 
-map2 <- tm_shape(lisa) +
-  tm_fill("p_ii",
-          breaks = c(0, 0.001, 0.01, 0.05, 1),
-              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
-  tm_borders(alpha = 0.5) +
-  tm_layout(main.title = "p-value of local Moran's I",
-            main.title.size = 0.8)
+map1 <- function(input_data) {
+  tmap_mode("view") +
+  tm_shape(input_data) +
+    tm_fill("ii") +
+    tm_borders(alpha = 0.5) +
+    tm_view(set.zoom.limits = c(10, 15)) +
+    tm_layout(main.title = "local Moran's I of Total Trips",
+              main.title.size = 0.8)
+}
 
-tmap_arrange(map1, map2, ncol = 2)
+
+map2 <- function(input_data) {
+  tmap_mode("view") +
+    tm_shape(input_data) +
+    tm_fill(
+      "p_ii_sim",
+      breaks = c(0, 0.001, 0.01, 0.05, 1),
+      labels = c("0.001", "0.01", "0.05", "Not sig")
+    ) +
+    tm_borders(alpha = 0.5) +
+    tm_layout(main.title = "p-value of local Moran's I",
+              main.title.size = 0.8)
+}
+
+```
+
+```{r}
+tmap_arrange(map1(lisa_6_9), map2(lisa_6_9), ncol = 2)
 ```
 
 #### 5.1.6.2.4. **Visualising LISA map**
