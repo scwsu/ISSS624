@@ -29,8 +29,8 @@ website:
             href: In-class Ex/In-class_Ex2/In-class_Ex2_EHSA.html
       - text: Take-home Exercises
         menu: 
-          - text: Take-home Exercise 1
-            #href:
+          - text: Take-Home Exercise 1
+            href: Take-Home_Ex/Take-Home_Ex1/Take-Home_Ex1.html
           - text: Take-home Exercise 2
             #href: 
     right:

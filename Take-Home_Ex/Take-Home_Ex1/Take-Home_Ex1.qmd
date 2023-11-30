@@ -1050,7 +1050,7 @@ local_moranI_pvalue(lisa_16_19)
 ```
 :::
 
-#### 5.1.6.2.3. **Visuaising local Moran's I and p-value**
+#### 5.1.6.2.3. **Visualising local Moran's I and p-value**
 
 For effective comparison, it will be better for us to plot both maps next to each other as shown below.
 
@@ -1082,9 +1082,31 @@ map2 <- function(input_data) {
 
 ```
 
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
 ```{r}
 tmap_arrange(map1(lisa_6_9), map2(lisa_6_9), ncol = 2)
 ```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+```{r}
+tmap_arrange(map1(lisa_17_20), map2(lisa_17_20), ncol = 2)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+```{r}
+tmap_arrange(map1(lisa_11_14), map2(lisa_11_14), ncol = 2)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+```{r}
+tmap_arrange(map1(lisa_16_19), map2(lisa_16_19), ncol = 2)
+```
+:::
 
 #### 5.1.6.2.4. **Visualising LISA map**
 
@@ -1092,27 +1114,49 @@ LISA map is a categorical map showing outliers and clusters. There are two types
 
 In lisa sf data.frame, we can find three fields contain the LISA categories. They are *mean*, *median* and *pysal*. In general, classification in *mean* will be used as shown in the code chunk below.
 
-\`\`\`{r}
+```{r}
 
-#### 5.1.6.3. **Geary's C**
+visualize_lisa_map <- function(input_data) {
+  lisa_sig <- input_data  %>%
+    filter(p_ii_sim < 0.05)
+  tmap_mode("view")
+  tm_shape(input_data) +
+    tm_polygons() +
+    tm_borders(alpha = 0.5) +
+    tm_shape(lisa_sig) +
+    tm_fill("mean") +
+    tm_borders(alpha = 0.4)
+}  
 
-#### 5.1.7. **Spatial Correlogram**
+```
 
-#### 5.1.7.1. **Moran's I Correlogram**
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
 
-#### 5.1.7.2. **Geary's C Correlogram**
+```{r}
+visualize_lisa_map(lisa_6_9)
+```
 
-#### 5.2. **Local Spatial Autocorrelation Statistics**
+## Weekday Afternoon Peak 5pm to 8pm
 
-#### 5.2.1. **Cluster and Outlier Analysis**
+```{r}
+visualize_lisa_map(lisa_17_20)
+```
 
-#### 5.2.1.1. **Local Moran's I**
+## Weekends/Holiday Morning Peak 11am to 2pm
 
-#### 5.2.1.2. **Anselin's Moran Scatterplot**
+```{r}
+visualize_lisa_map(lisa_11_14)
+```
 
-#### 5.2.1.3. **LISA Cluster Maps**
+## Weekends/Holiday Evening Peak 4pm to 7pm
 
-#### 5.2.1.4. **Interpretation of Results**
+```{r}
+visualize_lisa_map(lisa_16_19)
+```
+:::
+
+#### 5.1.6.2.5. **Interpretation of Results**
 
 ## 6. Conclusion
 
