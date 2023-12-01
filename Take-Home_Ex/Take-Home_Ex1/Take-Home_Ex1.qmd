@@ -76,159 +76,171 @@ odbus$DESTINATION_PT_CODE <- as.factor(odbus$DESTINATION_PT_CODE)
 glimpse(odbus)
 ```
 
-#### 
-
 #### 3.3.3. **Extracting the study data**
 
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-origin6_9 <- odbus %>%
+wdmp <- odbus %>%
   filter(DAY_TYPE == "WEEKDAY") %>%
   filter(TIME_PER_HOUR >= 6 &
            TIME_PER_HOUR <= 9) %>%
   group_by(ORIGIN_PT_CODE) %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 
-kable(head(origin6_9))
+kable(head(wdmp))
 ```
 
-We will save the output in rds format for future use.
+We will save the output in *rds* format for future use.
 
 ```{r}
-write_rds(origin6_9, "data/rds/origin6_9.rds")
+write_rds(wdmp, "data/rds/wdmp.rds")
 ```
 
-The follwing code chunk will be used to import the saved origin6_9.rds into R environment.
+The follwing code chunk will be used to import the saved *wdmp.rds* into R environment.
 
 ```{r}
-origin6_9 <- read_rds("data/rds/origin6_9.rds")
+wdmp <- read_rds("data/rds/wdmp.rds")
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-origin17_20 <- odbus %>%
+wdap <- odbus %>%
   filter(DAY_TYPE == "WEEKDAY") %>%
   filter(TIME_PER_HOUR >= 17 &
            TIME_PER_HOUR <= 20) %>%
   group_by(ORIGIN_PT_CODE) %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 
-kable(head(origin17_20))
+kable(head(wdap))
 ```
 
-We will save the output in rds format for future use.
+We will save the output in *rds* format for future use.
 
 ```{r}
-write_rds(origin17_20, "data/rds/origin17_20.rds")
+write_rds(wdap, "data/rds/wdap.rds")
 ```
 
-The following code chunk will be used to import the saved origin17_20. rds into R environment.
+The following code chunk will be used to import the saved *wdap.rds* into R environment.
 
 ```{r}
-origin17_20 <- read_rds("data/rds/origin17_20.rds")
+wdap <- read_rds("data/rds/wdap.rds")
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-origin11_14 <- odbus %>%
+wehmp <- odbus %>%
   filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
   filter(TIME_PER_HOUR >= 11 &
            TIME_PER_HOUR <= 14) %>%
   group_by(ORIGIN_PT_CODE) %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 
-kable(head(origin11_14))
+kable(head(wehmp))
 ```
 
-We will save the output in rds format for future use.
+We will save the output in *rds* format for future use.
 
 ```{r}
-write_rds(origin11_14, "data/rds/origin11_14.rds")
+write_rds(wehmp, "data/rds/wehmp.rds")
 ```
 
-The following code chunk will be used to import the saved origin11_14.rds into R environment.
+The following code chunk will be used to import the saved *wehmp.rds* into R environment.
 
 ```{r}
-origin11_14 <- read_rds("data/rds/origin11_14.rds")
+wehmp <- read_rds("data/rds/wehmp.rds")
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-origin16_19 <- odbus %>%
+wehep <- odbus %>%
   filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
   filter(TIME_PER_HOUR >= 16 &
            TIME_PER_HOUR <= 19) %>%
   group_by(ORIGIN_PT_CODE) %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 
-kable(head(origin16_19))
+kable(head(wehep))
 ```
 
-We will save the output in rds format for future use.
+We will save the output in *rds* format for future use.
 
 ```{r}
-write_rds(origin16_19, "data/rds/origin16_19.rds")
+write_rds(wehep, "data/rds/wehep.rds")
 ```
 
-The following code chunk will be used to import the saved origin16_19.rds into R environment.
+The following code chunk will be used to import the saved *wehep.rds* into R environment.
 
 ```{r}
-origin16_19 <- read_rds("data/rds/origin16_19.rds")
+wehep <- read_rds("data/rds/wehep.rds")
 ```
 :::
 
 ### **3.4. Data Wrangling - Geospatial Data**
 
+```{r}
+join_data <- function(input_data) {
+  output <- left_join(busstop, input_data,
+            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
+  return(output)
+}
+
+find_duplicate <- function(input_data) {
+  input_data %>%
+    group_by_all() %>%
+    filter(n() > 1) %>%
+    ungroup()
+  
+}
+```
+
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-origin6_9_busstop <- left_join(busstop, origin6_9,
-            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
-origin6_9_busstop
+wdmp_busstop <- join_data(wdmp)
+wdmp_busstop 
 ```
 
 ```{r}
-duplicate <- origin6_9_busstop %>%
-  group_by_all() %>%
-  filter(n()>1) %>%
-  ungroup()
+find_duplicate_wdmp_busstop <- find_duplicate(wdmp_busstop)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-origin17_20_busstop <- left_join(busstop, origin17_20,
-            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
-origin17_20_busstop
+wdap_busstop <- join_data(wdap)
+wdap_busstop 
 ```
 
 ```{r}
-duplicate <- origin17_20_busstop %>%
-  group_by_all() %>%
-  filter(n()>1) %>%
-  ungroup()
+find_duplicate_wdap_busstop <- find_duplicate(wdap_busstop)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-origin11_14_busstop <- left_join(busstop, origin11_14,
-            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
-origin11_14_busstop
+wehmp_busstop <- join_data(wehmp)
+wehmp_busstop 
+```
+
+```{r}
+find_duplicate_wehmp_busstop <- find_duplicate(wehmp_busstop)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-origin16_19_busstop <- left_join(busstop, origin16_19,
-            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
-origin16_19_busstop
+wehep_busstop <- join_data(wehep)
+wehep_busstop 
+```
+
+```{r}
+find_duplicate_wehep_busstop <- find_duplicate(wehep_busstop)
 ```
 :::
 
@@ -250,7 +262,7 @@ honeycomb_grid <- function(input_data) {
   point_counts_current <-
     st_intersection(honeycomb_grid_sf_current, input_data) %>%
     group_by(grid_id) %>%
-    summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  # Replace 'TRIPS' with your column name
+    summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  
   
   # Merge the point counts back into the honeycomb grid
   honeycomb_grid_sf_current <- honeycomb_grid_sf_current %>%
@@ -297,37 +309,37 @@ draw_honeycomb_map <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-honeycomb_grid_6_9 <- honeycomb_grid(origin6_9_busstop)
-draw_honeycomb_map(honeycomb_grid_6_9)
+honeycombgrid_wdmp <- honeycomb_grid(wdmp_busstop)
+draw_honeycomb_map(honeycombgrid_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-honeycomb_grid_17_20 <- honeycomb_grid(origin17_20_busstop)
-draw_honeycomb_map(honeycomb_grid_17_20)
+honeycombgrid_wdap <- honeycomb_grid(wdap_busstop)
+draw_honeycomb_map(honeycombgrid_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-honeycomb_grid_11_14 <- honeycomb_grid(origin11_14_busstop)
-draw_honeycomb_map(honeycomb_grid_11_14)
+honeycombgrid_wehmp <- honeycomb_grid(wehmp_busstop)
+draw_honeycomb_map(honeycombgrid_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-honeycomb_grid_16_19 <- honeycomb_grid(origin16_19_busstop)
-draw_honeycomb_map(honeycomb_grid_16_19)
+honeycombgrid_wehep <- honeycomb_grid(wehep_busstop)
+draw_honeycomb_map(honeycombgrid_wehep)
 ```
 :::
 
 ## 5. Exploratory Spatial Data Analysis
 
-Exploratory Spatial Data Analysis (ESDA) is an expansion of the Exploratory Data Analysis concept, encompassing descriptive methods aimed at unveiling the spatial distribution of data and detecting anomalies.
+Exploratory Spatial Data Analysis (ESDA) extends the principles of Exploratory Data Analysis to encompass descriptive techniques focused on revealing the spatial patterns within data and identifying any unusual observations.
 
-In this segment, we will delve into both global and local spatial autocorrelation. The global perspective highlights overarching trends, whereas the local analysis empowers us to pinpoint regions of heightened and reduced values within the dataset.
+In this section, we will explore both global and local spatial autocorrelation. The global perspective helps us identify broad patterns, while the local analysis enables us to identify specific areas with high or low values in the dataset.
 
 ### 5.1. **Global Spatial Autocorrelation**
 
@@ -377,57 +389,53 @@ nb_queen <- function(input_data){
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-nb_queen_6_9 <- nb_queen(honeycomb_grid_6_9)
-summary(nb_queen_6_9$nb)
+nb_queen_wdmp <- nb_queen(honeycombgrid_wdmp)
+summary(nb_queen_wdmp$nb)
 ```
 
 The summary report above shows that there are 1493 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_queen_6_9,
-           n=10))
+kable(head(nb_queen_wdmp, n=10))
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-nb_queen_17_20 <- nb_queen(honeycomb_grid_17_20)
-summary(nb_queen_17_20$nb)
+nb_queen_wdap <- nb_queen(honeycombgrid_wdmp)
+summary(nb_queen_wdap$nb)
 ```
 
 The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 37 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_queen_17_20,
-           n=10))
+kable(head(nb_queen_wdap, n=10))
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-nb_queen_11_14 <- nb_queen(honeycomb_grid_11_14)
-summary(nb_queen_11_14$nb)
+nb_queen_wehmp <- nb_queen(honeycombgrid_wehmp)
+summary(nb_queen_wehmp$nb)
 ```
 
 The summary report above shows that there are 1499 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_queen_11_14,
-           n=10))
+kable(head(nb_queen_wehmp, n=10))
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-nb_queen_16_19 <- nb_queen(honeycomb_grid_16_19)
-summary(nb_queen_16_19$nb)
+nb_queen_wehep <- nb_queen(honeycombgrid_wehep)
+summary(nb_queen_wehep$nb)
 ```
 
 The summary report above shows that there are 1489 area units in Singapore. The most connected area units have 6 neighbors. There are 42 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_queen_16_19,
-           n=10))
+kable(head(nb_queen_wehep, n=10))
 ```
 :::
 
@@ -448,57 +456,53 @@ nb_rook <- function(input_data){
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-nb_rook_6_9 <- nb_rook(honeycomb_grid_6_9)
-summary(nb_rook_6_9$nb)
+nb_rook_wdmp <- nb_rook(honeycombgrid_wdmp)
+summary(nb_rook_wdmp$nb)
 ```
 
 The summary report above shows that there are 1493 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_rook_6_9,
-           n=10))
+kable(head(nb_rook_wdmp, n=10))
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-nb_rook_17_20 <- nb_rook(honeycomb_grid_17_20)
-summary(nb_rook_17_20$nb)
+nb_rook_wdap <- nb_rook(honeycombgrid_wdap)
+summary(nb_rook_wdap$nb)
 ```
 
 The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 37 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_rook_17_20,
-           n=10))
+kable(head(nb_rook_wdap, n=10))
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-nb_rook_11_14 <- nb_rook(honeycomb_grid_11_14)
-summary(nb_rook_11_14$nb)
+nb_rook_wehmp <- nb_rook(honeycombgrid_wehmp)
+summary(nb_rook_wehmp$nb)
 ```
 
 The summary report above shows that there are 1499 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_rook_11_14,
-           n=10))
+kable(head(nb_rook_wehmp, n=10))
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-nb_rook_16_19 <- nb_rook(honeycomb_grid_16_19)
-summary(nb_rook_16_19$nb)
+nb_rook_wehep <- nb_rook(honeycombgrid_wehep)
+summary(nb_rook_wehep$nb)
 ```
 
 The summary report above shows that there are 1489 area units in Singapore. The most connected area units have 6 neighbors. There are 42 area units with only one neighbor.
 
 ```{r}
-kable(head(nb_rook_16_19,
-           n=10))
+kable(head(nb_rook_wehep,n=10))
 ```
 :::
 
@@ -522,13 +526,9 @@ wmfd_dists <- function(input_data){
   nb <- st_knn(geo, longlat = TRUE)
   dists <- unlist(st_nb_dists(geo, nb))
   # summary(dists)
-  return(dists)
+  return(summary(dists))
 }
 
-tab_content <- function(input_data){
-  result <- summary(wmfd_dists(input_data))
-  return(result)
-}
 ```
 
 The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
@@ -537,7 +537,7 @@ The majority of hexagons seem to be uniformly spaced at 500 units apart since th
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-tab_content(honeycomb_grid_6_9)
+wmfd_dists(honeycombgrid_wdmp)
 ```
 
 The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
@@ -545,7 +545,7 @@ The majority of hexagons seem to be uniformly spaced at 500 units apart since th
 ## Weekday Afternoon Peak 5pm to 9pm
 
 ```{r}
-tab_content(honeycomb_grid_17_20)
+wmfd_dists(honeycombgrid_wdap)
 ```
 
 The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
@@ -553,7 +553,7 @@ The majority of hexagons seem to be uniformly spaced at 500 units apart since th
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-tab_content(honeycomb_grid_11_14)
+wmfd_dists(honeycombgrid_wehmp)
 ```
 
 The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4583 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
@@ -561,7 +561,7 @@ The majority of hexagons seem to be uniformly spaced at 500 units apart since th
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-tab_content(honeycomb_grid_16_19)
+wmfd_dists(honeycombgrid_wehep)
 ```
 
 The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4583 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
@@ -584,25 +584,25 @@ wm_fd <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-wm_fd(honeycomb_grid_6_9)
+wm_fd(honeycombgrid_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-wm_fd(honeycomb_grid_17_20)
+wm_fd(honeycombgrid_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-wm_fd(honeycomb_grid_11_14)
+wm_fd(honeycombgrid_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-wm_fd(honeycomb_grid_16_19)
+wm_fd(honeycombgrid_wehep)
 ```
 :::
 
@@ -627,26 +627,25 @@ wm_ad <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-wm_ad(honeycomb_grid_6_9)
+wm_ad(honeycombgrid_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-wm_ad(honeycomb_grid_17_20)
-
+wm_ad(honeycombgrid_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-wm_ad(honeycomb_grid_11_14)
+wm_ad(honeycombgrid_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-wm_ad(honeycomb_grid_16_19)
+wm_ad(honeycombgrid_wehep)
 ```
 :::
 
@@ -668,7 +667,6 @@ wm_idw <- function(input_data) {
         scale = 1,
         alpha = 1),
       .before = 1)
-  
   return(output)
 }
 ```
@@ -677,25 +675,25 @@ wm_idw <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-wm_idw(honeycomb_grid_6_9)
+wm_idw(honeycombgrid_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-wm_idw(honeycomb_grid_17_20)
+wm_idw(honeycombgrid_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-wm_idw(honeycomb_grid_11_14)
+wm_idw(honeycombgrid_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-wm_idw(honeycomb_grid_16_19)
+wm_idw(honeycombgrid_wehep)
 ```
 :::
 
@@ -727,36 +725,31 @@ rswm_ad <- function(input_data) {
       .before = 1)
   return(output)
 }
-
-tab_content <- function(input_data){
-  return(rswm_ad(input_data))
-}
-
 ```
 
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-rswm_ad_6_9 <- tab_content(honeycomb_grid_6_9)
+rswm_ad_wdmp <- rswm_ad(honeycombgrid_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-rswm_ad_17_20 <- tab_content(honeycomb_grid_17_20)
+rswm_ad_wdap <- rswm_ad(honeycombgrid_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-rswm_ad_11_14 <- tab_content(honeycomb_grid_11_14)
+rswm_ad_wehmp <- rswm_ad(honeycombgrid_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-rswm_ad_16_19 <- tab_content(honeycomb_grid_16_19)
+rswm_ad_wehep <- rswm_ad(honeycombgrid_wehep)
 ```
 :::
 
@@ -779,39 +772,35 @@ moranI <- function(input_data) {
                        input_data$wt)
   return(output)
 }
-
-tab_content <- function(input_data){
-  return(moranI(input_data))
-}
 ```
 
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-moranI_6_9 <- tab_content(rswm_ad_6_9)
-glimpse(moranI_6_9)
+moranI_wdmp <- moranI(rswm_ad_wdmp)
+glimpse(moranI_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-moranI_17_20 <- tab_content(rswm_ad_17_20)
-glimpse(moranI_17_20)
+moranI_wdap <- moranI(rswm_ad_wdap)
+glimpse(moranI_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-moranI_11_14 <- tab_content(rswm_ad_11_14)
-glimpse(moranI_11_14)
+moranI_wehmp <- moranI(rswm_ad_wehmp)
+glimpse(moranI_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-moranI_16_19 <- tab_content(rswm_ad_16_19)
-glimpse(moranI_16_19)
+moranI_wehep <- moranI(rswm_ad_wehep)
+glimpse(moranI_wehep)
 ```
 :::
 
@@ -820,7 +809,7 @@ glimpse(moranI_16_19)
 In general, Moran's I test will be performed instead of just computing the Moran's I statistics. With **sfdep** package, Moran's I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
 
 ```{r}
-tab_content <- function(input_data) {
+global_moranI <- function(input_data) {
   output <- global_moran_test(input_data$TOT_TRIPS,
                               input_data$nb,
                               input_data$wt)
@@ -832,25 +821,25 @@ tab_content <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-tab_content(rswm_ad_6_9)
+global_moranI(rswm_ad_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-tab_content(rswm_ad_17_20)
+global_moranI(rswm_ad_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-tab_content(rswm_ad_11_14)
+global_moranI(rswm_ad_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-tab_content(rswm_ad_16_19)
+global_moranI(rswm_ad_wehep)
 ```
 :::
 
@@ -867,7 +856,7 @@ set.seed(1234)
 Next, `global_moran_perm()` is used to perform Monte Carlo simulation.
 
 ```{r}
-tab_content <- function(input_data) {
+global_moranI_perm <- function(input_data) {
   output <- global_moran_perm(input_data$TOT_TRIPS,
                               input_data$nb,
                               input_data$wt,
@@ -880,25 +869,25 @@ tab_content <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-tab_content(rswm_ad_6_9)
+global_moranI_perm(rswm_ad_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-tab_content(rswm_ad_17_20)
+global_moranI_perm(rswm_ad_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-tab_content(rswm_ad_11_14)
+global_moranI_perm(rswm_ad_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-tab_content(rswm_ad_16_19)
+global_moranI_perm(rswm_ad_wehep)
 ```
 :::
 
@@ -906,19 +895,15 @@ The report above show that the p-value is smaller than alpha value of 0.05. Henc
 
 #### 5.1.6.2. **Computing Local Moran's I**
 
-In this section, you will learn how to compute Local Moran's I of GDPPC at county level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of sfdep package.
+In this section, you will learn how to compute Local Moran's I of GDPPC at county level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of **sfdep** package.
 
 ```{r}
 lisa <- function(input_data) {
-  output <- rswm_ad_6_9 %>%
+  output <- input_data %>%
     mutate(local_moran = local_moran(TOT_TRIPS, nb, wt, nsim = 99),
            .before = 1) %>%
     unnest(local_moran)
   return(output)
-}
-
-tab_content <- function(input_data){
-  return(lisa(input_data))
 }
 ```
 
@@ -926,52 +911,52 @@ tab_content <- function(input_data){
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-lisa_6_9 <- tab_content(rswm_ad_6_9)
-lisa_6_9
+lisa_wdmp <- lisa(rswm_ad_wdmp)
+lisa_wdmp
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-lisa_17_20 <- tab_content(rswm_ad_17_20)
-lisa_17_20
+lisa_wdap <- lisa(rswm_ad_wdap)
+lisa_wdap
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-lisa_11_14 <- tab_content(rswm_ad_11_14)
-lisa_11_14 
+lisa_wehmp <- lisa(rswm_ad_wehmp)
+lisa_wehmp 
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-lisa_16_19 <- tab_content(rswm_ad_16_19)
-lisa_16_19
+lisa_wehep <- lisa(rswm_ad_wehep)
+lisa_wehep 
 ```
 :::
 
-The output of `local_moran()` is a sf data.frame containing the columns ii, eii, var_ii, z_ii, p_ii, p_ii_sim, and p_folded_sim.
+The output of `local_moran()` is a sf data.frame containing the columns *ii*, *eii*, *var_ii*, *z_ii*, *p_ii*, *p_ii_sim*, and *p_folded_sim*.
 
--   ii: local moran statistic
+-   *ii*: local moran statistic
 
--   eii: expectation of local moran statistic; for localmoran_permthe permutation sample means
+-   *eii*: expectation of local moran statistic; for localmoran_permthe permutation sample means
 
--   var_ii: variance of local moran statistic; for localmoran_permthe permutation sample standard deviations
+-   *var_ii*: variance of local moran statistic; for localmoran_permthe permutation sample standard deviations
 
--   z_ii: standard deviate of local moran statistic; for localmoran_perm based on permutation sample means and standard deviations p_ii: p-value of local moran statistic using pnorm(); for localmoran_perm using standard deviatse based on permutation sample means and standard deviations p_ii_sim: For `localmoran_perm()`, `rank()` and `punif()` of observed statistic rank for \[0, 1\] p-values using `alternative=` -p_folded_sim: the simulation folded \[0, 0.5\] range ranked p-value (based on https://github.com/pysal/esda/blob/4a63e0b5df1e754b17b5f1205b cadcbecc5e061/esda/crand.py#L211-L213)
+-   *z_ii*: standard deviate of local moran statistic; for localmoran_perm based on permutation sample means and standard deviations p_ii: p-value of local moran statistic using pnorm(); for localmoran_perm using standard deviatse based on permutation sample means and standard deviations p_ii_sim: For `localmoran_perm()`, `rank()` and `punif()` of observed statistic rank for \[0, 1\] p-values using `alternative=` -p_folded_sim: the simulation folded \[0, 0.5\] range ranked p-value (based on https://github.com/pysal/esda/blob/4a63e0b5df1e754b17b5f1205b cadcbecc5e061/esda/crand.py#L211-L213)
 
--   skewness: For `localmoran_perm`, the output of e1071::skewness() for the permutation samples underlying the standard deviates
+-   *skewness*: For `localmoran_perm`, the output of e1071::skewness() for the permutation samples underlying the standard deviates
 
--   kurtosis: For `localmoran_perm`, the output of e1071::kurtosis() for the permutation samples underlying the standard deviates.
+-   *kurtosis*: For `localmoran_perm`, the output of e1071::kurtosis() for the permutation samples underlying the standard deviates.
 
-#### 5.1.6.2.1. **Visualising local Moran's I**
+#### 5.1.6.2.1. Visualizing **local Moran's I**
 
-In this code chunk below, tmap functions are used prepare a choropleth map by using value in the *ii* field.
+In this code chunk below, **tmap** functions are used prepare a choropleth map by using value in the *ii* field.
 
 ```{r}
-local_moranI <- function(input_data) {
+visual_local_moranI <- function(input_data) {
   output <- tmap_mode("view") +
     tm_shape(input_data) +
     tm_fill("ii") +
@@ -987,34 +972,34 @@ local_moranI <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-local_moranI(lisa_6_9)
+visual_local_moranI(lisa_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-local_moranI(lisa_17_20)
+visual_local_moranI(lisa_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-local_moranI(lisa_11_14)
+visual_local_moranI(lisa_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-local_moranI(lisa_16_19)
+visual_local_moranI(lisa_wehep)
 ```
 :::
 
-#### 5.1.6.2.2. **Visualising p-value of local Moran's I**
+#### 5.1.6.2.2. Visualizing **p-value of local Moran's I**
 
-In the code chunk below, tmap functions are used prepare a choropleth map by using value in the *p_ii_sim* field.
+In the code chunk below, **tmap** functions are used prepare a choropleth map by using value in the *p_ii_sim* field.
 
 ```{r}
-local_moranI_pvalue <- function(input_data) {
+visual_local_moranI_pvalue <- function(input_data) {
   tmap_mode("view") +
     tm_shape(input_data) +
     tm_fill("p_ii_sim") +
@@ -1028,29 +1013,29 @@ local_moranI_pvalue <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-local_moranI_pvalue(lisa_6_9)
+visual_local_moranI_pvalue(lisa_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-local_moranI_pvalue(lisa_17_20)
+visual_local_moranI_pvalue(lisa_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-local_moranI_pvalue(lisa_11_14)
+visual_local_moranI_pvalue(lisa_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-local_moranI_pvalue(lisa_16_19)
+visual_local_moranI_pvalue(lisa_wehep)
 ```
 :::
 
-#### 5.1.6.2.3. **Visualising local Moran's I and p-value**
+#### 5.1.6.2.3. Visualizing **local Moran's I and p-value**
 
 For effective comparison, it will be better for us to plot both maps next to each other as shown below.
 
@@ -1086,36 +1071,35 @@ map2 <- function(input_data) {
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-tmap_arrange(map1(lisa_6_9), map2(lisa_6_9), ncol = 2)
+tmap_arrange(map1(lisa_wdmp), map2(lisa_wdmp), ncol = 2)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-tmap_arrange(map1(lisa_17_20), map2(lisa_17_20), ncol = 2)
+tmap_arrange(map1(lisa_wdap), map2(lisa_wdap), ncol = 2)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-tmap_arrange(map1(lisa_11_14), map2(lisa_11_14), ncol = 2)
+tmap_arrange(map1(lisa_wehmp), map2(lisa_wehmp), ncol = 2)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-tmap_arrange(map1(lisa_16_19), map2(lisa_16_19), ncol = 2)
+tmap_arrange(map1(lisa_wehep), map2(lisa_wehep), ncol = 2)
 ```
 :::
 
-#### 5.1.6.2.4. **Visualising LISA map**
+#### 5.1.6.2.4. Visualizing **LISA map**
 
-LISA map is a categorical map showing outliers and clusters. There are two types of outliers namely: High-Low and Low-High outliers. Likewise, there are two type of clusters namely: High-High and Low-Low cluaters. In fact, LISA map is an interpreted map by combining local Moran's I of geographical areas and their respective p-values.
+LISA map is a categorical map showing outliers and clusters. There are two types of outliers namely: High-Low and Low-High outliers. Likewise, there are two type of clusters namely: High-High and Low-Low clusters. In fact, LISA map is an interpreted map by combining local Moran's I of geographical areas and their respective p-values.
 
 In lisa sf data.frame, we can find three fields contain the LISA categories. They are *mean*, *median* and *pysal*. In general, classification in *mean* will be used as shown in the code chunk below.
 
 ```{r}
-
 visualize_lisa_map <- function(input_data) {
   lisa_sig <- input_data  %>%
     filter(p_ii_sim < 0.05)
@@ -1127,32 +1111,31 @@ visualize_lisa_map <- function(input_data) {
     tm_fill("mean") +
     tm_borders(alpha = 0.4)
 }  
-
 ```
 
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
-visualize_lisa_map(lisa_6_9)
+visualize_lisa_map(lisa_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
-visualize_lisa_map(lisa_17_20)
+visualize_lisa_map(lisa_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
-visualize_lisa_map(lisa_11_14)
+visualize_lisa_map(lisa_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
-visualize_lisa_map(lisa_16_19)
+visualize_lisa_map(lisa_wehep)
 ```
 :::
 
