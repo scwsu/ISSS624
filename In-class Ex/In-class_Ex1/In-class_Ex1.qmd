@@ -24,7 +24,7 @@ The code chunk below loads the following packages:
 -   **tidyverse**: for non-spatial data handling
 
 ```{r}
-pacman::p_load(sf, tmap, tidyverse)
+pacman::p_load(sf, tmap, tidyverse, knitr)
 ```
 
 The data used for this analysis includes:
@@ -42,25 +42,18 @@ The data used for this analysis includes:
 Firstly, we will import the *Passenger Volume by Origin-Destination Bus Stops* data set download from LTADataMall by using \`read_csv()\` of **readr** package and name the dataframe as \`odbus\`.
 
 ```{r}
-#| eval: false
 odbus <- read_csv("data/aspatial/origin_destination_bus_202308.csv")
 ```
 
 To treat the numeric variables \`ORIGIN_PT_CODE\` and \`DESTINATION_PT_CODE\` as categorical grouping variables in R, they should be converted to factors. This transformation allows R to recognize and work with them as categorical variables.
 
 ```{r}
-#| eval: false
 odbus$ORIGIN_PT_CODE <- as.factor(odbus$ORIGIN_PT_CODE)
-odbus$DESTINATION_PT_CODE <- as.factor(odbus$DESTINATION_PT_CODE)
+odbus$DESTINATION_PT_CODE <- as.factor(odbus$DESTINATION_PT_CODE) 
 ```
 
-### 3.2. Extracting Commuting Flow Data
-
-The following code chunk extracts data related to commuting patterns on weekdays during the busy morning rush hours (7 am, 8 am, and 9 am).
-
 ```{r}
-#| eval: false
-origtrip_7_9 <- odbus %>%
+origin7_9 <- odbus %>%
   filter(DAY_TYPE == "WEEKDAY") %>%
   filter(TIME_PER_HOUR >= 7 &
            TIME_PER_HOUR <= 9) %>%
@@ -68,12 +61,23 @@ origtrip_7_9 <- odbus %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 ```
 
+```{r}
+write_rds(origin7_9, "data/rds/origin7_9.rds")
+```
+
+```{r}
+origin7_9 <- read_rds("data/rds/origin7_9.rds")
+```
+
+### 3.2. Extracting Commuting Flow Data
+
+The following code chunk extracts data related to commuting patterns on weekdays during the busy morning rush hours (7 am, 8 am, and 9 am).
+
 ### 3.3. Importing Geospatial Data
 
 The following code chunk uses \`st_read()\` function from the **sf** package to import \`BusStop\` shapefile into R dataframe named \`BusStop\`. It is configured with the **svy21** projected coordinate system, with a \`crs\` setting of 3414.
 
 ```{r}
-#| eval: false
 busstop <- st_read(dsn = "data/geospatial",
                    layer = "BusStop") %>%
   st_transform(crs = 3414)
@@ -87,5 +91,62 @@ The following code chunk uses \`st_read()\` function from the **sf** package to 
 mpsz <- st_read(dsn = "data/geospatial",
                    layer = "MPSZ-2019") %>%
   st_transform(crs = 3414)
-mpsz
+```
+
+### **3.4. Data Wrangling - Geospatial Data**
+
+```{r}
+busstop_mpsz <- st_intersection(busstop, mpsz) %>%
+  select(BUS_STOP_N, SUBZONE_C) %>%
+  st_drop_geometry()
+```
+
+```{r}
+write_rds(busstop_mpsz, "data/rds/busstop_mpsz.csv")  
+```
+
+```{r}
+origin_SZ <- left_join(origin7_9 , busstop_mpsz,
+            by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+  rename(ORIGIN_BS = ORIGIN_PT_CODE,
+         ORIGIN_SZ = SUBZONE_C) %>%
+  group_by(ORIGIN_SZ) %>%
+  summarise(TOT_TRIPS = sum(TRIPS))
+```
+
+```{r}
+duplicate <- origin_SZ %>%
+  group_by_all() %>%
+  filter(n()>1) %>%
+  ungroup()
+```
+
+```{r}
+origin_data <- unique(origin_SZ)
+```
+
+```{r}
+origintrip_SZ <- left_join(mpsz, 
+                           origin_SZ,
+                           by = c("SUBZONE_C" = "ORIGIN_SZ"))
+```
+
+```{r}
+tm_shape(origintrip_SZ)+
+  tm_fill("TOT_TRIPS", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "Passenger trips") +
+  tm_layout(main.title = "Passenger trips generated at planning sub-zone level",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from URA\n and Passenger trips data from LTA", 
+             position = c("left", "bottom"))
 ```
