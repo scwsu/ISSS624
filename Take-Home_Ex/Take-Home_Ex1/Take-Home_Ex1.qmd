@@ -2,7 +2,7 @@
 title: "Geospatial Analytics for Public Good"
 author: "Su Sandi Cho Win"
 date: "25 November 2023"
-date-modified: "25 November 2023"
+date-modified: "03 December 2023"
 format: html
 execute:
   echo: true
@@ -98,7 +98,7 @@ We will save the output in *rds* format for future use.
 write_rds(wdmp, "data/rds/wdmp.rds")
 ```
 
-The follwing code chunk will be used to import the saved *wdmp.rds* into R environment.
+The following code chunk will be used to import the saved *wdmp.rds* into R environment.
 
 ```{r}
 wdmp <- read_rds("data/rds/wdmp.rds")
@@ -279,7 +279,7 @@ honeycomb_grid <- function(input_data) {
 Preparing a reusable function to plot the honeycomb map
 
 ```{r}
-draw_honeycomb_map <- function(input_data) {
+draw_honeycomb_map_fixed <- function(input_data) {
   map_output <- tm_shape(input_data) +
     tm_fill(
       breaks = c(0, 2000, 5000, 10000, 20000, 500000),
@@ -305,26 +305,51 @@ draw_honeycomb_map <- function(input_data) {
 }
 ```
 
+```{r}
+draw_honeycomb_map_quantile <- function(input_data) {
+  map_output <- tm_shape(input_data) +
+    tm_fill(
+      col = "TOT_TRIPS",
+      palette = "Reds",
+      style = "quantile",
+      title = "Number of Trips",
+      id = "grid_id",
+      showNA = FALSE,
+      alpha = 0.6,
+      popup.vars = c(
+        "Number of trips: " = "TOT_TRIPS"
+      ),
+      popup.format = list(
+        TOT_TRIPS = list(format = "f", digits = 0)
+      )
+    ) +
+    tm_borders(col = "grey40", lwd = 0.7) +
+    tmap_mode("view")
+
+  return (map_output)
+}
+```
+
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
 ```{r}
 honeycombgrid_wdmp <- honeycomb_grid(wdmp_busstop)
-draw_honeycomb_map(honeycombgrid_wdmp)
+draw_honeycomb_map_quantile(honeycombgrid_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
 honeycombgrid_wdap <- honeycomb_grid(wdap_busstop)
-draw_honeycomb_map(honeycombgrid_wdap)
+draw_honeycomb_map_quantile(honeycombgrid_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
 ```{r}
 honeycombgrid_wehmp <- honeycomb_grid(wehmp_busstop)
-draw_honeycomb_map(honeycombgrid_wehmp)
+draw_honeycomb_map_quantile(honeycombgrid_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
@@ -379,6 +404,8 @@ The following code chunk utilizes [`st_contiguity()`](https://sfdep.josiahparry.
 nb_queen <- function(input_data){
   output_nb_queen <- input_data %>% 
     mutate(nb = st_contiguity(area_honeycomb_grid_current),
+           #wt = st_weights(nb,
+                           #style = "W"),
          .before = 1)
   
   return(output_nb_queen)
@@ -662,7 +689,7 @@ wm_idw <- function(input_data) {
   output <- input_data %>%
     mutate(
       nb = st_contiguity(area_honeycomb_grid_current),
-      wts = st_inverse_distance(nb,
+      wt = st_inverse_distance(nb,
         area_honeycomb_grid_current,
         scale = 1,
         alpha = 1),
