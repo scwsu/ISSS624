@@ -23,10 +23,10 @@ Exploratory Spatial Data Analysis (ESDA) represents a powerful approach with the
 
 ## 2. Getting Started
 
-The following code chunk installs and loads **sf**, **sfdep**, **tmap**, **tidyverse, knitr, dplyr, hexbin** packages into R environment. [*pacman()*](https://cran.r-project.org/web/packages/pacman/readme/README.html) is a R package management tool.
+The following code chunk installs and loads **sf**, **sfdep**, **tmap**, **tidyverse, knitr, hexbin** packages into R environment. [`pacman()`](https://cran.r-project.org/web/packages/pacman/readme/README.html)is a R package management tool.
 
 ```{r}
-pacman::p_load(sf, sfdep, tmap, tidyverse, plotly, knitr, dplyr, hexbin)
+pacman::p_load(sf, sfdep, tmap, tidyverse, plotly, knitr, hexbin)
 ```
 
 ## 3. Data Preparation
@@ -39,11 +39,17 @@ The datasets used for this study are:
 
 -   Passenger Volume by Origin Destination Bus Stops from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en.html),
 
--   Bus Stop Location dataset from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en.html)
+-   Bus Stop Location dataset from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en.html).
 
 ### 3.2. Importing the Data into R Environment
 
 #### **3.2.1. Importing Geospatial Data into R**
+
+The following code chunk utilizes the `st_read()` function from the **sf** package to import:
+
+-   *BusStop* shapefile into R, creating a simple feature data frame named `busstop`, and
+
+-   *MPSZ-2019* shapefile into R and save it as a sf data frame called `mpsz`.
 
 ```{r}
 busstop <- st_read(dsn = "data/geospatial",
@@ -51,8 +57,6 @@ busstop <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 glimpse(busstop)
 ```
-
-import *MPSZ-2019* downloaded from eLearn into RStudio and save it as a sf data frame called `mpsz`.
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial",
@@ -62,12 +66,14 @@ mpsz <- st_read(dsn = "data/geospatial",
 
 #### **3.3.2. Importing Attribute Data into R**
 
-Firstly, we will import the *Passenger Volume by Origin Destination Bus Stops* data set downloaded from LTA DataMall by using `read_csv()` of **readr** package.
+To begin, we utilize the `read_csv()` function from the **readr** package to import the *Passenger Volume by Origin Destination Bus Stops* dataset for the month of October 2023, downloaded from LTADataMall and name it as `odbus`.
 
 ```{r}
-odbus <- read_csv("data/aspatial/origin_destination_bus_202308.csv")
+odbus <- read_csv("data/aspatial/origin_destination_bus_202310.csv")
 glimpse(odbus)
 ```
+
+The following code chunk converts the *ORIGIN_PT_CODE* and *DESTINATION_PT_CODE* columns in the `odbus` data frame into factor data types, making them suitable for further analysis. It then uses `glimpse()` function to verify if the conversion is successful.
 
 ```{r}
 # Using tidyverse functions to convert these data values into factor data type.
@@ -78,8 +84,20 @@ glimpse(odbus)
 
 #### 3.3.3. **Extracting the study data**
 
+For the purpose of this project, we will study data related to commuting patterns on:
+
+-   weekdays during the busy morning rush hours (6am \~ 9am),
+
+-   weekdays during the busy afternoon rush hours (5pm \~ 8pm),
+
+-   weekends/holidays during the busy morning rush hours (11am \~ 2pm),
+
+-   weekends/holidays during the busy evening rush hours (4pm \~ 7pm).
+
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
+
+The following code chunk creates a new data frame called `wdmp` by filtering the `odbus` data frame to retain only weekday data between **6AM** and **9AM**, grouping it by *ORIGIN_PT_CODE*, and then calculating the total number of trips for each origin point. Afterward, it displays the first few rows of the `wdmp` data frame in a tabular format using the `kable()` function for visual inspection or reporting purposes.
 
 ```{r}
 wdmp <- odbus %>%
@@ -92,19 +110,21 @@ wdmp <- odbus %>%
 kable(head(wdmp))
 ```
 
-We will save the output in *rds* format for future use.
+The following code chunk is used to save the `wdmp` data object in rds (R Data Serialization) format file named *wdmp.rds* in the **data/rds** directory.
 
 ```{r}
 write_rds(wdmp, "data/rds/wdmp.rds")
 ```
 
-The following code chunk will be used to import the saved *wdmp.rds* into R environment.
+The following code chunk is used to import the saved *wdmp.rds* into R environment.
 
 ```{r}
 wdmp <- read_rds("data/rds/wdmp.rds")
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
+
+The following code chunk creates a new data frame called `wdap` by filtering the `odbus` data frame to retain only weekday data between **5PM** and **8PM**, grouping it by *ORIGIN_PT_CODE*, and then calculating the total number of trips for each origin point. Afterward, it displays the first few rows of the `wdap` data frame in a tabular format using the `kable()` function for visual inspection or reporting purposes.
 
 ```{r}
 wdap <- odbus %>%
@@ -117,19 +137,21 @@ wdap <- odbus %>%
 kable(head(wdap))
 ```
 
-We will save the output in *rds* format for future use.
+The following code chunk is used to save the `wdap` data object in rds (R Data Serialization) format file named *wdap.rds* in the **data/rds** directory.
 
 ```{r}
 write_rds(wdap, "data/rds/wdap.rds")
 ```
 
-The following code chunk will be used to import the saved *wdap.rds* into R environment.
+The following code chunk is used to import the saved *wdap.rds* into R environment.
 
 ```{r}
 wdap <- read_rds("data/rds/wdap.rds")
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
+
+The following code chunk creates a new data frame called `wehmp` by filtering the `odbus` data frame to retain only weekend/holiday data between **11AM** and **2PM**, grouping it by *ORIGIN_PT_CODE*, and then calculating the total number of trips for each origin point. Afterward, it displays the first few rows of the `wehmp` data frame in a tabular format using the `kable()` function for visual inspection or reporting purposes.
 
 ```{r}
 wehmp <- odbus %>%
@@ -142,19 +164,21 @@ wehmp <- odbus %>%
 kable(head(wehmp))
 ```
 
-We will save the output in *rds* format for future use.
+The following code chunk is used to save the `wehmp` data object in rds (R Data Serialization) format file named *wehmp.rds* in the **data/rds** directory.
 
 ```{r}
 write_rds(wehmp, "data/rds/wehmp.rds")
 ```
 
-The following code chunk will be used to import the saved *wehmp.rds* into R environment.
+The following code chunk is used to import the saved *wehmp.rds* into R environment.
 
 ```{r}
 wehmp <- read_rds("data/rds/wehmp.rds")
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
+
+The following code chunk creates a new data frame called `wehep` by filtering the `odbus` data frame to retain only weekend/holiday data between **4PM** and **7PM**, grouping it by *ORIGIN_PT_CODE*, and then calculating the total number of trips for each origin point. Afterward, it displays the first few rows of the `wehep` data frame in a tabular format using the `kable()` function for visual inspection or reporting purposes.
 
 ```{r}
 wehep <- odbus %>%
@@ -167,13 +191,13 @@ wehep <- odbus %>%
 kable(head(wehep))
 ```
 
-We will save the output in *rds* format for future use.
+The following code chunk is used to save the `wehep` data object in rds (R Data Serialization) format file named *wehep.rds* in the **data/rds** directory.
 
 ```{r}
 write_rds(wehep, "data/rds/wehep.rds")
 ```
 
-The following code chunk will be used to import the saved *wehep.rds* into R environment.
+The following code chunk is used to import the saved *wehep.rds* into R environment.
 
 ```{r}
 wehep <- read_rds("data/rds/wehep.rds")
@@ -182,13 +206,21 @@ wehep <- read_rds("data/rds/wehep.rds")
 
 ### **3.4. Data Wrangling - Geospatial Data**
 
+Next, we prepare a reusable function to process input each study data.
+
+The following function, `join_data` performs a left join between the `busstop` dataset and the input data using the *BUS_STOP_N* and *ORIGIN_PT_CODE* columns as matching keys and returns the resulting merged dataset.
+
 ```{r}
 join_data <- function(input_data) {
   output <- left_join(busstop, input_data,
             by = c("BUS_STOP_N" = "ORIGIN_PT_CODE"))
   return(output)
 }
+```
 
+The following function, `find_duplicate` takes an input dataset, groups it by all columns, filters and retains rows with duplicate values, and then ungroups the dataset, effectively identifying and returning duplicate rows within the input data.
+
+```{r}
 find_duplicate <- function(input_data) {
   input_data %>%
     group_by_all() %>%
@@ -201,10 +233,14 @@ find_duplicate <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk combines the `wdmp` dataset with the `busstop` dataset using `join_data` function, resulting in a merged dataset named `wdmp_busstop`.
+
 ```{r}
 wdmp_busstop <- join_data(wdmp)
 wdmp_busstop 
 ```
+
+The following code chunk utilizes `find_duplicate` function to find duplicate rows in the data.
 
 ```{r}
 find_duplicate_wdmp_busstop <- find_duplicate(wdmp_busstop)
@@ -212,10 +248,14 @@ find_duplicate_wdmp_busstop <- find_duplicate(wdmp_busstop)
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk combines the `wdap` dataset with the `busstop` dataset using `join_data` function, resulting in a merged dataset named `wdmp_busstop`.
+
 ```{r}
 wdap_busstop <- join_data(wdap)
 wdap_busstop 
 ```
+
+The following code chunk utilizes `find_duplicate` function to find duplicate rows in the data.
 
 ```{r}
 find_duplicate_wdap_busstop <- find_duplicate(wdap_busstop)
@@ -223,10 +263,14 @@ find_duplicate_wdap_busstop <- find_duplicate(wdap_busstop)
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk combines the `wehmp` dataset with the `busstop` dataset using `join_data` function, resulting in a merged dataset named `wehmp_busstop`.
+
 ```{r}
 wehmp_busstop <- join_data(wehmp)
 wehmp_busstop 
 ```
+
+The following code chunk utilizes `find_duplicate` function to find duplicate rows in the data.
 
 ```{r}
 find_duplicate_wehmp_busstop <- find_duplicate(wehmp_busstop)
@@ -234,10 +278,14 @@ find_duplicate_wehmp_busstop <- find_duplicate(wehmp_busstop)
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk combines the `wehep` dataset with the `busstop` dataset using `join_data` function, resulting in a merged dataset named `wehep_busstop`.
+
 ```{r}
 wehep_busstop <- join_data(wehep)
 wehep_busstop 
 ```
+
+The following code chunk utilizes `find_duplicate` function to find duplicate rows in the data.
 
 ```{r}
 find_duplicate_wehep_busstop <- find_duplicate(wehep_busstop)
@@ -246,7 +294,11 @@ find_duplicate_wehep_busstop <- find_duplicate(wehep_busstop)
 
 ## 4. Exploratory Data Analysis
 
-Preparing a reusable function to process input data
+### 4.1. Creating a map with total number of trips by origin at the hexagon level
+
+Next, we prepare a reusable function to compute the passenger trips generated by origin at the hexagon level.
+
+The following function, `honeycomb_grid` is used to generate a **hexagonal grid overlay** on a spatial dataset, counts the points within each hexagon, and returns a modified grid with the counts, excluding grids with no points (count equal to 0).
 
 ```{r}
 honeycomb_grid <- function(input_data) {
@@ -262,7 +314,8 @@ honeycomb_grid <- function(input_data) {
   point_counts_current <-
     st_intersection(honeycomb_grid_sf_current, input_data) %>%
     group_by(grid_id) %>%
-    summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE))  
+    summarize(TOT_TRIPS = sum(TRIPS, na.rm = TRUE),
+              BUS_STOP_N = paste(BUS_STOP_N, collapse = ", "))  
   
   # Merge the point counts back into the honeycomb grid
   honeycomb_grid_sf_current <- honeycomb_grid_sf_current %>%
@@ -270,43 +323,16 @@ honeycomb_grid <- function(input_data) {
   
   # remove grid without value of 0 (i.e. no points in side that grid)
   honeycomb_count_current <-
-    filter(honeycomb_grid_sf_current, TOT_TRIPS > 0)
+    filter(honeycomb_grid_sf_current, TOT_TRIPS > 0) 
   
   return(honeycomb_count_current)
 }
 ```
 
-Preparing a reusable function to plot the honeycomb map
+The following function, `draw_honeycomb_map` is used to create a thematic map from the input data, displaying the *TOT_TRIPS* values in a color-coded style based on quantiles, with additional features like borders, tooltips, and opacity adjustments, and returns the map as an output.
 
 ```{r}
-draw_honeycomb_map_fixed <- function(input_data) {
-  map_output <- tm_shape(input_data) +
-    tm_fill(
-      breaks = c(0, 2000, 5000, 10000, 20000, 500000),
-      labels = c("0 to 1999", "2000 to 4999", "5000 to 9999", "10000 to 19999", "20000 to 499999"),
-      col = "TOT_TRIPS",
-      palette = "Reds",
-      style = "fixed",
-      title = "Number of Trips",
-      id = "grid_id",
-      showNA = FALSE,
-      alpha = 0.6,
-      popup.vars = c(
-        "Number of trips: " = "TOT_TRIPS"
-      ),
-      popup.format = list(
-        TOT_TRIPS = list(format = "f", digits = 0)
-      )
-    ) +
-    tm_borders(col = "grey40", lwd = 0.7) +
-    tmap_mode("view")
-
-  return (map_output)
-}
-```
-
-```{r}
-draw_honeycomb_map_quantile <- function(input_data) {
+draw_honeycomb_map <- function(input_data) {
   map_output <- tm_shape(input_data) +
     tm_fill(
       col = "TOT_TRIPS",
@@ -317,10 +343,13 @@ draw_honeycomb_map_quantile <- function(input_data) {
       showNA = FALSE,
       alpha = 0.6,
       popup.vars = c(
-        "Number of trips: " = "TOT_TRIPS"
+        "Number of trips: " = "TOT_TRIPS",
+        "Bus stop number:" = "BUS_STOP_N"
+        
       ),
       popup.format = list(
-        TOT_TRIPS = list(format = "f", digits = 0)
+        TOT_TRIPS = list(format = "f", digits = 0),
+        BUS_STOP_N = list(format = "f", digits = 0)
       )
     ) +
     tm_borders(col = "grey40", lwd = 0.7) +
@@ -333,26 +362,34 @@ draw_honeycomb_map_quantile <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk first generates a hexagonal grid with trip counts using the `honeycomb_grid` function applied to the `wdmp_busstop` dataset and then creates a thematic map displaying trip counts based on quantiles using the `draw_honeycomb_map` function with the generated grid data.
+
 ```{r}
 honeycombgrid_wdmp <- honeycomb_grid(wdmp_busstop)
-draw_honeycomb_map_quantile(honeycombgrid_wdmp)
+draw_honeycomb_map(honeycombgrid_wdmp)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk first generates a hexagonal grid with trip counts using the `honeycomb_grid` function applied to the `wdap_busstop` dataset and then creates a thematic map displaying trip counts based on quantiles using the `draw_honeycomb_map` function with the generated grid data.
+
 ```{r}
 honeycombgrid_wdap <- honeycomb_grid(wdap_busstop)
-draw_honeycomb_map_quantile(honeycombgrid_wdap)
+draw_honeycomb_map(honeycombgrid_wdap)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk first generates a hexagonal grid with trip counts using the `honeycomb_grid` function applied to the `wehmp_busstop` dataset and then creates a thematic map displaying trip counts based on quantiles using the `draw_honeycomb_map` function with the generated grid data.
+
 ```{r}
 honeycombgrid_wehmp <- honeycomb_grid(wehmp_busstop)
-draw_honeycomb_map_quantile(honeycombgrid_wehmp)
+draw_honeycomb_map(honeycombgrid_wehmp)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
+
+The following code chunk first generates a hexagonal grid with trip counts using the `honeycomb_grid` function applied to the `wehep_busstop` dataset and then creates a thematic map displaying trip counts based on quantiles using the `draw_honeycomb_map` function with the generated grid data.
 
 ```{r}
 honeycombgrid_wehep <- honeycomb_grid(wehep_busstop)
@@ -360,55 +397,125 @@ draw_honeycomb_map(honeycombgrid_wehep)
 ```
 :::
 
+### 4.2. Removing irrelevant data
+
+From the maps above, we note that there are a few bus stops (BUS_STOP_N = 46211, 46219, 46239) that are located outside Singapore. Hence, we prepare a reusable function to remove those from our study data.
+
+```{r}
+bus_stop_numbers_to_exclude <- c(46211, 46219, 46239)
+busstop_filtered <- function(input_data) {
+  output <- input_data %>%
+  filter(!BUS_STOP_N %in% bus_stop_numbers_to_exclude)
+  return(output)
+}
+```
+
+Next, we prepare a reusable function to verify if the excluded bus stop numbers are still present in the data after filtering.
+
+```{r}
+# Function to check if excluded bus stop numbers are present in the data
+check_excluded_bus_stops <- function(input_data, bus_stop_numbers_to_exclude) {
+  # Find the bus stop numbers that are in the data after filtering
+  remaining_bus_stops <- input_data$BUS_STOP_N
+  
+  # Check if any of the excluded bus stop numbers are still in the data
+  still_in_data <- any(bus_stop_numbers_to_exclude %in% remaining_bus_stops)
+  
+  if (still_in_data) {
+    message("Excluded bus stop numbers are still in the data.")
+  } else {
+    message("Excluded bus stop numbers are no longer in the data.")
+  }
+  
+  return(still_in_data)
+}
+```
+
+::: panel-tabset
+## Weekday Morning Peak 6am to 9am
+
+The following code chunk utilizes `busstop_filtered` function and name the filtered dataset as `wdmp_busstop_filtered`. After filtering, `check_excluded_bus_stop` function is used to determine if any of the excluded bus stop numbers are still present in `wdmp_busstop_filtered`.
+
+```{r}
+wdmp_busstop_filtered <- busstop_filtered(wdmp_busstop)
+check_excluded_bus_stops(wdmp_busstop_filtered, bus_stop_numbers_to_exclude)
+```
+
+## Weekday Afternoon Peak 5pm to 8pm
+
+The following code chunk utilizes `busstop_filtered` function and name the filtered dataset as `wdap_busstop_filtered`. After filtering, `check_excluded_bus_stop` function is used to determine if any of the excluded bus stop numbers are still present in `wdap_busstop_filtered`.
+
+```{r}
+wdap_busstop_filtered <- busstop_filtered(wdap_busstop)
+check_excluded_bus_stops(wdap_busstop_filtered, bus_stop_numbers_to_exclude)
+```
+
+## Weekends/Holiday Morning Peak 11am to 2pm
+
+The following code chunk utilizes `busstop_filtered` function and name the filtered dataset as `wehmp_busstop_filtered`. After filtering, `check_excluded_bus_stop` function is used to determine if any of the excluded bus stop numbers are still present in `wehmp_busstop_filtered`.
+
+```{r}
+wehmp_busstop_filtered <- busstop_filtered(wehmp_busstop)
+check_excluded_bus_stops(wehmp_busstop_filtered, bus_stop_numbers_to_exclude)
+```
+
+## Weekends/Holiday Evening Peak 4pm to 7pm
+
+The following code chunk utilizes `busstop_filtered` function and name the filtered dataset as `wehep_busstop_filtered`. After filtering, `check_excluded_bus_stop` function is used to determine if any of the excluded bus stop numbers are still present in `wehep_busstop_filtered`.
+
+```{r}
+wehep_busstop_filtered <- busstop_filtered(wehep_busstop)
+check_excluded_bus_stops(wehep_busstop_filtered, bus_stop_numbers_to_exclude)
+```
+:::
+
 ## 5. Exploratory Spatial Data Analysis
 
 Exploratory Spatial Data Analysis (ESDA) extends the principles of Exploratory Data Analysis to encompass descriptive techniques focused on revealing the spatial patterns within data and identifying any unusual observations.
 
-In this section, we will explore both global and local spatial autocorrelation. The global perspective helps us identify broad patterns, while the local analysis enables us to identify specific areas with high or low values in the dataset.
+In this section, we will explore both **global** and **local spatial autocorrelation**. The global perspective helps us identify broad patterns, while the local analysis enables us to identify specific areas with high or low values in the dataset.
 
 ### 5.1. **Global Spatial Autocorrelation**
 
-In accordance with Tobler's First Law of Geography, it is acknowledged that "all things are interconnected, but objects in close proximity exhibit stronger connections than those farther apart.".
+In accordance with *Tobler*'s First Law of Geography, it is acknowledged that "all things are interconnected, but objects in close proximity exhibit stronger connections than those farther apart.".
 
-In this subsection, we will delve into the calculation of global spatial autocorrelation statistics and the assessment of spatial randomness on a global scale. The objective of these analyses is to gain insights into the distribution of passenger volume by Origin Destination Bus Stops across Singapore, assessing whether they are uniformly dispersed or not.
+In this subsection, we delve into the calculation of global spatial autocorrelation statistics and the assessment of spatial randomness on a global scale. The objective of these analyses is to gain insights into the distribution of passenger volume by Origin Destination Bus Stops across Singapore, assessing whether they are uniformly dispersed or not.
 
 #### 5.1.1. **Spatial Weights Matrix**
 
-To perform global spatial autocorrelation analysis, our initial step involves the creation of spatial weights for Singapore to establish the spatial neighborhood, a fundamental element for subsequent spatial analysis. There are two prevalent approaches for generating spatial weights: contiguity-based and distance-based methods.
+To perform global spatial autocorrelation analysis, our initial step involves the creation of spatial weights for Singapore to establish the spatial neighborhood, a fundamental element for subsequent spatial analysis. There are two prevalent approaches for generating spatial weights: **contiguity-based** and **distance-based** methods.
 
-In contiguity-based methods, neighboring areas are determined based on shared boundaries, with variations in how these boundaries are defined in different methods. Rook contiguity, for instance, considers neighbors that share a common edge. Conversely, Queen contiguity deems neighbors as those who share either a common vertex or edge. Consequently, Queen contiguity is more inclusive compared to Rook contiguity.
+In **contiguity-based** methods, neighboring areas are determined based on **shared boundaries**, with variations in how these boundaries are defined in different methods. **Rook** contiguity, for instance, considers neighbors that share a common edge. Conversely, **Queen** contiguity deems neighbors as those who share either a common vertex or edge. Consequently, Queen contiguity is more inclusive compared to Rook contiguity.
 
 The distinctions between these two approaches are elucidated in the following illustration.
 
-![](images/Comparing-rook-and-queen-contiguity-Each-square-is-representative-of-geographic-shapes.ppm){width="650"}
+![](images/Comparing-rook-and-queen-contiguity-Each-square-is-representative-of-geographic-shapes.ppm){width="545"}
 
-In distance-based contiguity, there are two distinct weighting schemes: fixed weighting and adaptive weighting. The former approach deems two regions as neighbors if they fall within a predetermined distance of each other. In the latter scheme, every region is assigned an equal number of neighbors, with the specific number of neighbors predetermined. For instance, if we set k = 8 neighbors, it will categorize the nearest eight regions as neighbors for each.
+In **distance-based** contiguity, there are two distinct weighting schemes: **fixed** weighting, **adaptive** weighting and **inverse** weighting. The **fixed** distance approach deems two regions as neighbors if they fall within a **predetermined distance** of each other. In the **adaptive** distance scheme, every region is assigned an **equal number of neighbors**, with the specific number of neighbors predetermined. For instance, if we set k = 8 neighbors, it will categorize the nearest eight regions as neighbors for each. The **inverse** distance weight matrix is used to measure spatial correlation by assigning weights to neighboring observations based on the **inverse of their distances**. In this matrix, **closer** observations receive **higher** weights, indicating a **stronger** influence on each other's values, while more **distant** observations have **lower** weights, reflecting a **weaker** spatial relationship.
 
 The choice of which spatial weights method to employ hinges on the geographical characteristics of the area under consideration. In cases where the geographical area comprises numerous isolated areas, opting for a contiguity-based matrix might lead to many regions lacking neighbors. Similarly, if the features (polygons) exhibit a wide range of sizes, encompassing both very large and relatively smaller ones, the use of a contiguity-based matrix may result in larger features having a disproportionate number of neighbors. This could potentially introduce a smoothing effect due to the higher number of neighbors for larger features, potentially skewing the analytical outcomes.
 
 #### 5.1.2. **Contiguity-based Spatial Weights**
 
-This section will focus on the creation of contiguity spatial weights using the **sfdep** package. Deriving contiguity spatial weights involves two key steps:
+This section focuses on the creation of contiguity spatial weights using the **sfdep** package. Deriving contiguity spatial weights involves two key steps:
 
 1.  Identifying the contiguity neighbor list using the [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) function from the **sfdep** package.
 
 2.  Generating the contiguity spatial weights using the [`st_weights()`](https://sfdep.josiahparry.com/reference/st_weights.html) function, also part of the **sfdep** package.
 
-Throughout this section, we will delve into the process of obtaining the contiguity neighbor list and the contiguity spatial weights separately. Subsequently, we will explore how to seamlessly combine both steps into a single procedure.
+Throughout this section, we delve into the process of obtaining the contiguity neighbor list and the contiguity spatial weights separately. Subsequently, we will explore how to seamlessly combine both steps into a single procedure.
 
 #### 5.1.2.1. **Contiguity-based (Queen) Spatial Weight Contiguity**
 
-The following code chunk utilizes [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) to derive a contiguity neighbour list by using Queen's method.
+Next, we prepare a reusable function by utilizing [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) to derive a contiguity neighbor list by using Queen's method.
 
 ```{r}
 nb_queen <- function(input_data){
-  output_nb_queen <- input_data %>% 
+  output <- input_data %>% 
     mutate(nb = st_contiguity(area_honeycomb_grid_current),
-           #wt = st_weights(nb,
-                           #style = "W"),
          .before = 1)
   
-  return(output_nb_queen)
+  return(output)
 }
 ```
 
@@ -534,14 +641,6 @@ kable(head(nb_rook_wehep,n=10))
 :::
 
 #### 5.1.3. **Distance-based Contiguity Weight Matrix**
-
-There are three commonly employed types of distance-based spatial weights:
-
-1.  Fixed distance weights
-
-2.  Adaptive distance weights
-
-3.  Inverse distance weights (IDW)
 
 #### 5.1.3.1. **Fixed Distance Weight Matrix**
 
@@ -689,7 +788,7 @@ wm_idw <- function(input_data) {
   output <- input_data %>%
     mutate(
       nb = st_contiguity(area_honeycomb_grid_current),
-      wt = st_inverse_distance(nb,
+      wts = st_inverse_distance(nb,
         area_honeycomb_grid_current,
         scale = 1,
         alpha = 1),
