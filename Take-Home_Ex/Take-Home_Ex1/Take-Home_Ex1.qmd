@@ -441,6 +441,12 @@ wdmp_busstop_filtered <- busstop_filtered(wdmp_busstop)
 check_excluded_bus_stops(wdmp_busstop_filtered, bus_stop_numbers_to_exclude)
 ```
 
+Next, we generate a new `honeycombgrid_wdmp_filtered` data based on `wdmp_busstop_filtered` data by using `honeycomb_grid` function created in Section 4.1.
+
+```{r}
+honeycombgrid_wdmp_filtered <- honeycomb_grid(wdmp_busstop_filtered)
+```
+
 ## Weekday Afternoon Peak 5pm to 8pm
 
 The following code chunk utilizes `busstop_filtered` function and name the filtered dataset as `wdap_busstop_filtered`. After filtering, `check_excluded_bus_stop` function is used to determine if any of the excluded bus stop numbers are still present in `wdap_busstop_filtered`.
@@ -448,6 +454,12 @@ The following code chunk utilizes `busstop_filtered` function and name the filte
 ```{r}
 wdap_busstop_filtered <- busstop_filtered(wdap_busstop)
 check_excluded_bus_stops(wdap_busstop_filtered, bus_stop_numbers_to_exclude)
+```
+
+Next, we generate a new `honeycombgrid_wdap_filtered` data based on `wdap_busstop_filtered` data by using `honeycomb_grid` function created in Section 4.1.
+
+```{r}
+honeycombgrid_wdap_filtered <- honeycomb_grid(wdap_busstop_filtered)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
@@ -459,6 +471,12 @@ wehmp_busstop_filtered <- busstop_filtered(wehmp_busstop)
 check_excluded_bus_stops(wehmp_busstop_filtered, bus_stop_numbers_to_exclude)
 ```
 
+Next, we generate a new `honeycombgrid_wehmp_filtered` data based on `wehmp_busstop_filtered` data by using `honeycomb_grid` function created in Section 4.1.
+
+```{r}
+honeycombgrid_wehmp_filtered <- honeycomb_grid(wehmp_busstop_filtered)
+```
+
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 The following code chunk utilizes `busstop_filtered` function and name the filtered dataset as `wehep_busstop_filtered`. After filtering, `check_excluded_bus_stop` function is used to determine if any of the excluded bus stop numbers are still present in `wehep_busstop_filtered`.
@@ -466,6 +484,12 @@ The following code chunk utilizes `busstop_filtered` function and name the filte
 ```{r}
 wehep_busstop_filtered <- busstop_filtered(wehep_busstop)
 check_excluded_bus_stops(wehep_busstop_filtered, bus_stop_numbers_to_exclude)
+```
+
+Next, we generate a new `honeycombgrid_wehep_filtered` data based on `wehep_busstop_filtered` data by using `honeycomb_grid` function created in Section 4.1.
+
+```{r}
+honeycombgrid_wehep_filtered <- honeycomb_grid(wehep_busstop_filtered)
 ```
 :::
 
@@ -507,7 +531,7 @@ Throughout this section, we delve into the process of obtaining the contiguity n
 
 #### 5.1.2.1. **Contiguity-based (Queen) Spatial Weight Contiguity**
 
-Next, we prepare a reusable function by utilizing [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) to derive a contiguity neighbor list by using Queen's method.
+Next, we prepare a reusable function named `nb_queen` by utilizing [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) to derive a contiguity neighbor list by using **Queen**'s method.
 
 ```{r}
 nb_queen <- function(input_data){
@@ -522,12 +546,16 @@ nb_queen <- function(input_data){
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk calculates **Queen** contiguity spatial weights for `honeycombgrid_wdmp_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_queen_wdmp <- nb_queen(honeycombgrid_wdmp)
+nb_queen_wdmp <- nb_queen(honeycombgrid_wdmp_filtered)
 summary(nb_queen_wdmp$nb)
 ```
 
-The summary report above shows that there are 1493 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_queen_wdmp` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_queen_wdmp, n=10))
@@ -535,12 +563,16 @@ kable(head(nb_queen_wdmp, n=10))
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk calculates **Queen** contiguity spatial weights for `honeycombgrid_wdap_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_queen_wdap <- nb_queen(honeycombgrid_wdmp)
+nb_queen_wdap <- nb_queen(honeycombgrid_wdap_filtered)
 summary(nb_queen_wdap$nb)
 ```
 
-The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 37 area units with only one neighbor.
+The summary report above shows that there are 1491 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_queen_wdap` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_queen_wdap, n=10))
@@ -548,12 +580,16 @@ kable(head(nb_queen_wdap, n=10))
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk calculates **Queen** contiguity spatial weights for `honeycombgrid_wehmp_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_queen_wehmp <- nb_queen(honeycombgrid_wehmp)
+nb_queen_wehmp <- nb_queen(honeycombgrid_wehmp_filtered)
 summary(nb_queen_wehmp$nb)
 ```
 
-The summary report above shows that there are 1499 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
+The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_queen_wehmp` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_queen_wehmp, n=10))
@@ -561,12 +597,16 @@ kable(head(nb_queen_wehmp, n=10))
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk calculates **Queen** contiguity spatial weights for `honeycombgrid_wehep_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_queen_wehep <- nb_queen(honeycombgrid_wehep)
+nb_queen_wehep <- nb_queen(honeycombgrid_wehep_filtered)
 summary(nb_queen_wehep$nb)
 ```
 
-The summary report above shows that there are 1489 area units in Singapore. The most connected area units have 6 neighbors. There are 42 area units with only one neighbor.
+The summary report above shows that there are 1488 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_queen_wehep` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_queen_wehep, n=10))
@@ -574,6 +614,8 @@ kable(head(nb_queen_wehep, n=10))
 :::
 
 #### 5.1.2.2. **Contiguity-based (Rook) Spatial Weight Contiguity**
+
+Next, we prepare a reusable function named `nb_rook` by utilizing [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) to derive a contiguity neighbor list by using **Rook**'s method.
 
 ```{r}
 nb_rook <- function(input_data){
@@ -589,12 +631,16 @@ nb_rook <- function(input_data){
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk calculates **Rook** contiguity spatial weights for `honeycombgrid_wdmp_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_rook_wdmp <- nb_rook(honeycombgrid_wdmp)
+nb_rook_wdmp <- nb_rook(honeycombgrid_wdmp_filtered)
 summary(nb_rook_wdmp$nb)
 ```
 
-The summary report above shows that there are 1493 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+The summary report above shows that there are 1490 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_rook_wdmp` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_rook_wdmp, n=10))
@@ -602,12 +648,16 @@ kable(head(nb_rook_wdmp, n=10))
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk calculates **Rook** contiguity spatial weights for `honeycombgrid_wdap_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_rook_wdap <- nb_rook(honeycombgrid_wdap)
+nb_rook_wdap <- nb_rook(honeycombgrid_wdap_filtered)
 summary(nb_rook_wdap$nb)
 ```
 
-The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 37 area units with only one neighbor.
+The summary report above shows that there are 1491 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_rook_wdap` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_rook_wdap, n=10))
@@ -615,12 +665,16 @@ kable(head(nb_rook_wdap, n=10))
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk calculates **Rook** contiguity spatial weights for `honeycombgrid_wehmp_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_rook_wehmp <- nb_rook(honeycombgrid_wehmp)
+nb_rook_wehmp <- nb_rook(honeycombgrid_wehmp_filtered)
 summary(nb_rook_wehmp$nb)
 ```
 
-The summary report above shows that there are 1499 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
+The summary report above shows that there are 1495 area units in Singapore. The most connected area units have 6 neighbors. There are 40 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_rook_wehmp` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_rook_wehmp, n=10))
@@ -628,12 +682,16 @@ kable(head(nb_rook_wehmp, n=10))
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk calculates **Rook** contiguity spatial weights for `honeycombgrid_wehep_filtered` dataset and summarizes the neighboring regions for each hexagon.
+
 ```{r}
-nb_rook_wehep <- nb_rook(honeycombgrid_wehep)
+nb_rook_wehep <- nb_rook(honeycombgrid_wehep_filtered)
 summary(nb_rook_wehep$nb)
 ```
 
-The summary report above shows that there are 1489 area units in Singapore. The most connected area units have 6 neighbors. There are 42 area units with only one neighbor.
+The summary report above shows that there are 1488 area units in Singapore. The most connected area units have 6 neighbors. There are 41 area units with only one neighbor.
+
+The following code chunk uses the `kable` function to display the first 10 rows of the `nb_rook_wehep` dataset in a tabular format.
 
 ```{r}
 kable(head(nb_rook_wehep,n=10))
@@ -644,7 +702,7 @@ kable(head(nb_rook_wehep,n=10))
 
 #### 5.1.3.1. **Fixed Distance Weight Matrix**
 
-Now, we will go ahead to derive summary statistics of the nearest neighbor distances vector (i.e. dists) by using the following code chunk.
+Now, we will go ahead to derive summary statistics of the nearest neighbor distances vector (i.e. dists) by using the reusable `wmfd_dists` function in the following code chunk.
 
 ```{r}
 wmfd_dists <- function(input_data){
@@ -657,49 +715,49 @@ wmfd_dists <- function(input_data){
 
 ```
 
-The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
-
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
-```{r}
-wmfd_dists(honeycombgrid_wdmp)
-```
+The following code chunk applies `wmfd_dists` function on `honeycombgrid_wdmp_filtered` dataset.
 
-The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+```{r}
+wmfd_dists(honeycombgrid_wdmp_filtered)
+```
 
 ## Weekday Afternoon Peak 5pm to 9pm
 
-```{r}
-wmfd_dists(honeycombgrid_wdap)
-```
+The following code chunk applies `wmfd_dists` function on `honeycombgrid_wdap_filtered` dataset.
 
-The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4582.6 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+```{r}
+wmfd_dists(honeycombgrid_wdap_filtered)
+```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
-```{r}
-wmfd_dists(honeycombgrid_wehmp)
-```
+The following code chunk applies `wmfd_dists` function on `honeycombgrid_wehmp_filtered` dataset.
 
-The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4583 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+```{r}
+wmfd_dists(honeycombgrid_wehmp_filtered)
+```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
-```{r}
-wmfd_dists(honeycombgrid_wehep)
-```
+The following code chunk applies `wmfd_dists` function on `honeycombgrid_wehep_filtered` dataset.
 
-The majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (4583 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+```{r}
+wmfd_dists(honeycombgrid_wehep_filtered)
+```
 :::
 
-The summary statistics report above shows that the maximum nearest neighbor distance is 4583 units. By using a threshold value of 4583 units will ensure that each area will have at least one neighbor. Now we will go ahead to compute the fixed distance weights by using the code chunk below.
+From the results above, the majority of hexagons seem to be uniformly spaced at 500 units apart since the minimum, first quartile, median, and third quartile are all the same (500 units). This indicates a high level of uniformity in the spacing of most hexagons. The maximum value (2291.3 units) is an outlier compared to the other values. It suggests that there is at least one pair of hexagons that are significantly further apart than the rest.
+
+The summary statistics report above shows that the maximum nearest neighbor distance is 2291.3 units. By using a threshold value of 2292 units will ensure that each area will have at least one neighbor. Now we will compute the **fixed** distance weights by using the reusable `wm_fd` function constructed in the following code chunk.
 
 ```{r}
 wm_fd <- function(input_data) {
   output <- input_data %>%
     mutate(nb = st_dist_band(area_honeycomb_grid_current,
-                        upper = 4583),
+                        upper = 2292),
       wt = st_weights(nb),
       .before = 1)
   return(output)
@@ -709,40 +767,50 @@ wm_fd <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk applies `wm_fd` function on `honeycombgrid_wdmp_filtered` dataset.
+
 ```{r}
-wm_fd(honeycombgrid_wdmp)
+wm_fd(honeycombgrid_wdmp_filtered)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk applies `wm_fd` function on `honeycombgrid_wdap_filtered` dataset.
+
 ```{r}
-wm_fd(honeycombgrid_wdap)
+wm_fd(honeycombgrid_wdap_filtered)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk applies `wm_fd` function on `honeycombgrid_wehmp_filtered` dataset.
+
 ```{r}
-wm_fd(honeycombgrid_wehmp)
+wm_fd(honeycombgrid_wehmp_filtered)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk applies `wm_fd` function on `honeycombgrid_wehep_filtered` dataset.
+
 ```{r}
-wm_fd(honeycombgrid_wehep)
+wm_fd(honeycombgrid_wehep_filtered)
 ```
 :::
 
 #### 5.1.3.2. **Adaptive Distance-based Weight Matrix**
 
-To address the problem of an uneven distribution of neighbors in a fixed distance weight matrix, we can directly control the number of neighbors by employing the k-nearest neighbors approach, as demonstrated in the following code snippet.
+To address the challenge of an uneven distribution of neighbors in a **fixed** distance weight matrix, we can directly control the number of neighbors by employing the **k-nearest neighbors** approach, as demonstrated in the reusable function `wm_ad` in the following code chunk.
 
-For hexagonal grid, we will set k = 6, meaning that each region will be assigned exactly 6 neighbors.
+::: callout-important
+In the case of a uniformly shaped hexagonal grid, the maximum allowable k value is 6, indicating that each region should ideally have precisely 6 neighboring regions. However, upon examining the visualizations in Section 4.1, it becomes evident that many hexagonal grids exhibit fewer than 6 neighbors. Given this observation, we have decided to adopt a value of **k = 4** for our subsequent analysis, taking into account the actual connectivity patterns.
+:::
 
 ```{r}
 wm_ad <- function(input_data) {
   output <- input_data %>%
     mutate(nb = st_knn(area_honeycomb_grid_current,
-                  k = 6),
+                  k = 4),
       wt = st_weights(nb),
       .before = 1)
   return(output)
@@ -752,36 +820,44 @@ wm_ad <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk applies `wm_ad` function on `honeycombgrid_wdmp_filtered` dataset.
+
 ```{r}
-wm_ad(honeycombgrid_wdmp)
+wm_ad(honeycombgrid_wdmp_filtered)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk applies `wm_ad` function on `honeycombgrid_wdap_filtered` dataset.
+
 ```{r}
-wm_ad(honeycombgrid_wdap)
+wm_ad(honeycombgrid_wdap_filtered)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk applies `wm_ad` function on `honeycombgrid_wehmp_filtered` dataset.
+
 ```{r}
-wm_ad(honeycombgrid_wehmp)
+wm_ad(honeycombgrid_wehmp_filtered)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk applies `wm_ad` function on `honeycombgrid_wehep_filtered` dataset.
+
 ```{r}
-wm_ad(honeycombgrid_wehep)
+wm_ad(honeycombgrid_wehep_filtered)
 ```
 :::
 
 #### 5.1.3.3. Inverse distance weights (IDW)
 
-The following code chunk utilizes:
+The following code chunk to construct reusable function `wm_idw` utilizes:
 
 -   [`st_contiguity()`](https://sfdep.josiahparry.com/reference/st_contiguity.html) to identify the neighbors by using contiguity criteria. The output is a list of neighbors (i.e. nb).
 
--   [`st_inverse_distance()`](https://sfdep.josiahparry.com/reference/st_inverse_distance.html) to calculate inverse distance weights of neighbors on the nb list.
+-   [`st_inverse_distance()`](https://sfdep.josiahparry.com/reference/st_inverse_distance.html) to calculate **inverse** distance weights of neighbors on the nb list.
 
 ```{r}
 wm_idw <- function(input_data) {
@@ -800,46 +876,56 @@ wm_idw <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk applies `wm_idw` function on `honeycombgrid_wdmp_filtered` dataset.
+
 ```{r}
-wm_idw(honeycombgrid_wdmp)
+wm_idw(honeycombgrid_wdmp_filtered)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk applies `wm_idw` function on `honeycombgrid_wdap_filtered` dataset.
+
 ```{r}
-wm_idw(honeycombgrid_wdap)
+wm_idw(honeycombgrid_wdap_filtered)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk applies `wm_idw` function on `honeycombgrid_wdap_filtered` dataset.
+
 ```{r}
-wm_idw(honeycombgrid_wehmp)
+wm_idw(honeycombgrid_wehmp_filtered)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk applies `wm_idw` function on `honeycombgrid_wehep_filtered` dataset.
+
 ```{r}
-wm_idw(honeycombgrid_wehep)
+wm_idw(honeycombgrid_wehep_filtered)
 ```
 :::
 
 #### 5.1.4. **Which spatial weight matrix to use?**
 
-The choice of a spatial weight matrix to use depends on the geographical area under investigation and the research objectives. In our specific context, when considering options between contiguity-based and distance-based spatial weight matrices, we are inclined towards the use of distance-based matrices. Within the category of distance-based matrices, we will specifically opt for the adaptive distance-based spatial weight matrix for our forthcoming analyses.
+The choice of a spatial weight matrix to use depends on the geographical area under investigation and the research objectives. In our specific context, when considering options between **contiguity-based** and **distance-based** spatial weight matrices, we are inclined towards the use of **distance-based** matrices. Within the category of distance-based matrices, we will specifically opt for the **adaptive** **distance-based** spatial weight matrix for our forthcoming analyses.
 
 Here are the summarized reasons for our choice:
 
-1.  Since the uniform grid has been disrupted by removing hexagons, an adaptive approach (like k-nearest neighbors) will be more appropriate. This method ensures that each hexagon has a set number of neighbors, compensating for any irregularities in the grid caused by the removal of zero-trip areas.
+1.  Since the uniform grid has been disrupted by removing hexagons, an adaptive approach (like k-nearest neighbors) will be more appropriate. This method ensures that each hexagon has a set number of neighbors, compensating for any irregularities in the grid caused by the removal of areas with number of trip = 0.
 
-2.  The adaptive method can effectively deal with the non-contiguity issue, ensuring that each hexagon still considers an appropriate neighborhood set, even if some adjacent hexagons are missing.
+2.  The adaptive method can effectively deal with the **non-contiguity issue**, ensuring that each hexagon still considers an appropriate neighborhood set, even if some adjacent hexagons are missing.
 
-3.  With missing hexagons, contiguity-based methods (like Rook or Queen) might not accurately reflect the spatial relationships because they rely on the assumption of a continuous, uninterrupted grid.
+3.  With missing hexagons, **contiguity-based** methods (like **Rook** or **Queen**) might not accurately reflect the spatial relationships because they rely on the assumption of a c**ontinuous, uninterrupted grid**.
 
-Taking these factors into account, our selection will be the adaptive distance-based spatial weight matrix.
+Taking these factors into account, our selection will be the **adaptive distance-based** spatial weight matrix.
 
 #### 5.1.5. **Row-Standardized Weights Matrix**
 
-With the weight matrix chosen, the next step is to assign weights to each neighboring polygon. In this process, every neighboring polygon will be given equal weight (style="W") by allocating the fraction 1/(number of neighbors) to each adjacent area. This corresponds to what is referred to as a row-standardized matrix, where each row in the matrix totals to 1.
+With the weight matrix chosen, the next step is to assign weights to each neighboring polygon. In this process, every neighboring polygon will be given equal weight (**style="W"**) by allocating the fraction **1/(number of neighbors)** to each adjacent area. This corresponds to what is referred to as a **row-standardized** matrix, where each row in the matrix totals to 1.
+
+The reusable `rswm_ad` function below takes input data and enhances it by incorporating spatial relationships through nearest neighbor calculations and weighting.
 
 ```{r}
 rswm_ad <- function(input_data) {
@@ -847,7 +933,7 @@ rswm_ad <- function(input_data) {
     mutate(nb = st_knn(area_honeycomb_grid_current,
                   k = 4),
       wt = st_weights(nb,
-                      style = "B"),
+                      style = "W"),
       .before = 1)
   return(output)
 }
@@ -856,26 +942,34 @@ rswm_ad <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk applies `rswm_ad_wdmp` function on `honeycombgrid_wdmp_filtered` dataset.
+
 ```{r}
-rswm_ad_wdmp <- rswm_ad(honeycombgrid_wdmp)
+rswm_ad_wdmp <- rswm_ad(honeycombgrid_wdmp_filtered)
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
 
+The following code chunk applies `rswm_ad_wdmp` function on `honeycombgrid_wdap_filtered` dataset.
+
 ```{r}
-rswm_ad_wdap <- rswm_ad(honeycombgrid_wdap)
+rswm_ad_wdap <- rswm_ad(honeycombgrid_wdap_filtered)
 ```
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk applies `rswm_ad_wdmp` function on `honeycombgrid_wehmp_filtered` dataset.
+
 ```{r}
-rswm_ad_wehmp <- rswm_ad(honeycombgrid_wehmp)
+rswm_ad_wehmp <- rswm_ad(honeycombgrid_wehmp_filtered)
 ```
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk applies `rswm_ad_wdmp` function on `honeycombgrid_wehep_filtered` dataset.
+
 ```{r}
-rswm_ad_wehep <- rswm_ad(honeycombgrid_wehep)
+rswm_ad_wehep <- rswm_ad(honeycombgrid_wehep_filtered)
 ```
 :::
 
@@ -889,7 +983,7 @@ In this subsection, we will employ two methods, namely **Moran's I** and **Geary
 
 #### 5.1.6.1. **Computing Global Moran' I**
 
-In the code chunk below, `global_moran()` function is used to compute the Moran's I value. Different from **spdep** package, the output is a tibble data.frame.
+In the code chunk below, the reusable `global_moran()` function is used to compute the **Moran's I** value. Different from **spdep** package, the output is a tibble data frame.
 
 ```{r}
 moranI <- function(input_data) {
@@ -903,36 +997,52 @@ moranI <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk calculates **Moran's I** spatial autocorrelation statistic for the `rswm_ad_wdmp` dataset and displays its summary information using `glimpse`.
+
 ```{r}
 moranI_wdmp <- moranI(rswm_ad_wdmp)
 glimpse(moranI_wdmp)
 ```
 
+The result with a **Moran's I** value of **0.218** for the dataset of **46** observations, indicates a **positive** spatial autocorrelation. This suggests that neighboring regions tend to have similar values, revealing **moderate** spatial patterns within the data.
+
 ## Weekday Afternoon Peak 5pm to 8pm
+
+The following code chunk calculates **Moran's I** spatial autocorrelation statistic for the `rswm_ad_wdap` dataset and displays its summary information using `glimpse`.
 
 ```{r}
 moranI_wdap <- moranI(rswm_ad_wdap)
 glimpse(moranI_wdap)
 ```
 
+The result, with a **Moran's I** value of **0.0764** for the dataset of **88.4** observations, indicates a **relatively low** level of spatial autocorrelation. This suggests that nearby regions in the dataset have some degree of similarity in their values, but the correlation is **not very strong**.
+
 ## Weekends/Holiday Morning Peak 11am to 2pm
+
+The following code chunk calculates **Moran's I** spatial autocorrelation statistic for the `rswm_ad_wehmp` dataset and displays its summary information using `glimpse`.
 
 ```{r}
 moranI_wehmp <- moranI(rswm_ad_wehmp)
 glimpse(moranI_wehmp)
 ```
 
+The result, with a **Moran's I** value of **0.173** and 51.4 observations, suggests **moderate** **positive** spatial autocorrelation. This indicates that neighboring regions in the dataset tend to have moderately similar values, indicating the presence of spatial patterns within the data.
+
 ## Weekends/Holiday Evening Peak 4pm to 7pm
+
+The following code chunk calculates **Moran's I** spatial autocorrelation statistic for the `rswm_ad_wehep dataset` and displays its summary information using `glimpse`.
 
 ```{r}
 moranI_wehep <- moranI(rswm_ad_wehep)
 glimpse(moranI_wehep)
 ```
+
+The result, with a **Moran's I** value of **0.122** and **73.1** observations, indicates a **moderate** **positive** spatial autocorrelation. This suggests that nearby regions in the dataset tend to have moderately similar values, indicating the presence of spatial patterns within the data.
 :::
 
 #### **5.1.6.1.1. Performing Global Moran's I test**
 
-In general, Moran's I test will be performed instead of just computing the Moran's I statistics. With **sfdep** package, Moran's I test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the code chunk below.
+In general, **Moran's I** test will be performed instead of just computing the **Moran's I** statistics. With **sfdep** package, **Moran's I** test can be performed by using [`global_moran_test()`](https://sfdep.josiahparry.com/reference/global_moran_test.html) as shown in the reusable function `global_moranI` in the code chunk below.
 
 ```{r}
 global_moranI <- function(input_data) {
@@ -946,40 +1056,58 @@ global_moranI <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk computes the **Global Moran's I** statistic for the `rswm_ad_wdmp` dataset.
+
 ```{r}
 global_moranI(rswm_ad_wdmp)
 ```
 
+The **Global Moran's I** test result strongly supports the presence of significant **positive** spatial autocorrelation in the dataset, with a **Moran's I** statistic of approximately **0.218**. This indicates that neighboring regions exhibit similar values, forming distinct spatial clusters. The very low p-value (\< **2.2e-16**) highlights the statistical significance of this spatial pattern, while the standard deviate of around **12.824** underscores its deviation from spatial randomness.
+
 ## Weekday Afternoon Peak 5pm to 8pm
+
+The following code chunk computes the **Global Moran's I** statistic for the `rswm_ad_wdap` dataset.
 
 ```{r}
 global_moranI(rswm_ad_wdap)
 ```
 
+The **Global Moran's I** test result indicates a statistically significant **positive** spatial autocorrelation within the dataset. The **Moran's I** statistic of approximately **0.0764** suggests that neighboring regions tend to exhibit similar values, signifying a spatial pattern where similar attributes or characteristics cluster together geographically. The extremely low p-value (**2.147e-06**) underscores the statistical significance of this spatial pattern, indicating that it is highly unlikely to be a result of random chance. The standard deviate of around **4.5967** further supports the significant deviation from spatial randomness, confirming the presence of positive spatial autocorrelation in the data.
+
 ## Weekends/Holiday Morning Peak 11am to 2pm
+
+The following code chunk computes the **Global Moran's I** statistic for the `rswm_ad_wehmp` dataset.
 
 ```{r}
 global_moranI(rswm_ad_wehmp)
 ```
 
+The **Global Moran's I** test result reveals a highly significant **positive** spatial autocorrelation within the dataset. The computed **Moran's I** statistic, approximately **0.173**, signifies that nearby regions tend to exhibit similar values, indicating a distinct spatial clustering pattern. The extremely low p-value (**\< 2.2e-16**) underscores the statistical significance of this spatial pattern, suggesting that it is exceptionally unlikely to occur by random chance. The standard deviate of approximately **10.232** reinforces the substantial deviation from spatial randomness, affirming the presence of significant positive spatial autocorrelation in the data.
+
 ## Weekends/Holiday Evening Peak 4pm to 7pm
+
+The following code chunk computes the **Global Moran's I** statistic for the `rswm_ad_wehep` dataset.
 
 ```{r}
 global_moranI(rswm_ad_wehep)
 ```
+
+The **Global Moran's I** test result indicates a statistically significant **positive** spatial autocorrelation within the dataset. The computed **Moran's I** statistic, approximately **0.1224**, suggests that neighboring regions tend to exhibit similar values, implying a discernible spatial clustering pattern. The low p-value (**1.566e-13**) underscores the statistical significance of this spatial pattern, indicating that it is highly unlikely to occur by random chance. The standard deviate of around **7.2886** further emphasizes the substantial deviation from spatial randomness, confirming the presence of significant positive spatial autocorrelation in the data.
 :::
 
 #### 5.1.6.1.2. **Performing Global Moran'I permutation test**
 
-In practice, monte carlo simulation should be used to perform the statistical test. For **sfdep**, it is supported by [`globel_moran_perm()`](https://sfdep.josiahparry.com/reference/global_moran_perm.html)
+In practice, **Monte Carlo** simulation should be used to perform the statistical test. For **sfdep**, it is supported by `globel_moran_perm()`.
 
+::: callout-note
 It is always a good practice to use `set.seed()` before performing simulation. This is to ensure that the computation is reproducible.
+:::
 
 ```{r}
 set.seed(1234)
 ```
 
-Next, `global_moran_perm()` is used to perform Monte Carlo simulation.
+Next, the following reusable function called `global_moranI_perm` utilizes `global_moran_perm()` to perform **Monte Carlo** simulation.
 
 ```{r}
 global_moranI_perm <- function(input_data) {
@@ -994,34 +1122,50 @@ global_moranI_perm <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk calculates the **Global Moran's I** statistic with **permutations** for the `rswm_ad_wdmp` dataset.
+
 ```{r}
 global_moranI_perm(rswm_ad_wdmp)
 ```
 
+The result of the **Global Moran's I** permutation test indicates that there is a statistically significant spatial autocorrelation in the dataset. The observed **Moran's I** statistic of approximately **0.21769** suggests that nearby regions tend to have similar values, revealing a spatial clustering pattern. The very low p-value (**\< 2.2e-16**) reinforces the significance of this spatial pattern, indicating that it is highly unlikely to be a result of random chance. The analysis confirms that the observed spatial clustering is a meaningful and non-random pattern within the data.
+
 ## Weekday Afternoon Peak 5pm to 8pm
+
+The following code chunk calculates the **Global Moran's I** statistic with **permutations** for the `rswm_ad_wdap` dataset.
 
 ```{r}
 global_moranI_perm(rswm_ad_wdap)
 ```
 
+The result of the **Global Moran's I** permutation test suggests a significant positive spatial autocorrelation in the dataset. The **Moran's I** statistic of approximately **0.076421** indicates that neighboring regions tend to exhibit similar values, signifying a spatial clustering pattern. The very low p-value (**\< 2.2e-16**) underscores the statistical significance of this spatial pattern, suggesting that it is highly unlikely to be a result of random chance.
+
 ## Weekends/Holiday Morning Peak 11am to 2pm
+
+The following code chunk calculates the **Global Moran's** **I** statistic with **permutations** for the `rswm_ad_wehmp` dataset.
 
 ```{r}
 global_moranI_perm(rswm_ad_wehmp)
 ```
 
+The result of the **Global Moran's I** permutation test reveals a substantial positive spatial autocorrelation in the dataset. The computed **Moran's I** statistic, approximately **0.17296**, indicates that neighboring regions tend to exhibit similar values, indicating a discernible spatial clustering pattern. The extremely low p-value (**\< 2.2e-16**) underscores the statistical significance of this spatial pattern, suggesting that it is highly improbable to result from random chance.
+
 ## Weekends/Holiday Evening Peak 4pm to 7pm
+
+The following code chunk calculates the **Global Moran's I** statistic with **permutations** for the `rswm_ad_wehep` dataset.
 
 ```{r}
 global_moranI_perm(rswm_ad_wehep)
 ```
+
+The result of the **Global Moran's I** permutation test indicates a significant positive spatial autocorrelation in the dataset. The **Moran's I** statistic, approximately **0.12238**, suggests that neighboring regions tend to have similar values, highlighting a spatial clustering pattern. The extremely low p-value (**\< 2.2e-16**) emphasizes the statistical significance of this spatial pattern, indicating that it is highly unlikely to be a result of random chance.
 :::
 
-The report above show that the p-value is smaller than alpha value of 0.05. Hence, reject the null hypothesis that the spatial patterns spatial independent. Because the Moran's I statistics is greater than 0. We can infer the spatial distribution shows sign of clustering.
+The report above show that the p-value is smaller than alpha value of 0.05. Hence, we reject the null hypothesis that the spatial patterns spatial independent. Because the **Moran's I** statistics is greater than 0. We can infer the spatial distribution shows sign of clustering.
 
 #### 5.1.6.2. **Computing Local Moran's I**
 
-In this section, you will learn how to compute Local Moran's I of GDPPC at county level by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of **sfdep** package.
+In this section, we will compute **Local Moran's I** of total number of passenger trips by using [`local_moran()`](https://sfdep.josiahparry.com/reference/local_moran.html) of **sfdep** package. We construct a reusable function called `lisa` as shown in the following code chunk to compute **Local Indicators of Spatial Association (LISA)** statistics.
 
 ```{r}
 lisa <- function(input_data) {
@@ -1036,12 +1180,16 @@ lisa <- function(input_data) {
 ::: panel-tabset
 ## Weekday Morning Peak 6am to 9am
 
+The following code chunk computes **LISA** statistics for the `rswm_ad_wdmp` dataset and displays the results.
+
 ```{r}
 lisa_wdmp <- lisa(rswm_ad_wdmp)
 lisa_wdmp
 ```
 
 ## Weekday Afternoon Peak 5pm to 8pm
+
+The following code chunk computes **LISA** statistics for the `rswm_ad_wdap` dataset and displays the results.
 
 ```{r}
 lisa_wdap <- lisa(rswm_ad_wdap)
@@ -1050,6 +1198,8 @@ lisa_wdap
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
+The following code chunk computes **LISA** statistics for the `rswm_ad_wehmp` dataset and displays the results.
+
 ```{r}
 lisa_wehmp <- lisa(rswm_ad_wehmp)
 lisa_wehmp 
@@ -1057,25 +1207,31 @@ lisa_wehmp
 
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
+The following code chunk computes **LISA** statistics for the `rswm_ad_wehep` dataset and displays the results.
+
 ```{r}
 lisa_wehep <- lisa(rswm_ad_wehep)
 lisa_wehep 
 ```
 :::
 
-The output of `local_moran()` is a sf data.frame containing the columns *ii*, *eii*, *var_ii*, *z_ii*, *p_ii*, *p_ii_sim*, and *p_folded_sim*.
+The output of `local_moran()` is a sf data frame containing the columns *ii*, *eii*, *var_ii*, *z_ii*, *p_ii*, *p_ii_sim*, and *p_folded_sim*.
 
 -   *ii*: local moran statistic
 
--   *eii*: expectation of local moran statistic; for localmoran_permthe permutation sample means
+-   *eii*: expectation of local moran statistic; for `localmoran_perm`, the permutation sample means
 
--   *var_ii*: variance of local moran statistic; for localmoran_permthe permutation sample standard deviations
+-   *var_ii*: variance of local moran statistic; for `localmoran_perm`, the permutation sample standard deviations
 
--   *z_ii*: standard deviate of local moran statistic; for localmoran_perm based on permutation sample means and standard deviations p_ii: p-value of local moran statistic using pnorm(); for localmoran_perm using standard deviatse based on permutation sample means and standard deviations p_ii_sim: For `localmoran_perm()`, `rank()` and `punif()` of observed statistic rank for \[0, 1\] p-values using `alternative=` -p_folded_sim: the simulation folded \[0, 0.5\] range ranked p-value (based on https://github.com/pysal/esda/blob/4a63e0b5df1e754b17b5f1205b cadcbecc5e061/esda/crand.py#L211-L213)
+-   *z_ii*: standard deviate of local moran statistic; for `localmoran_perm` based on permutation sample means and standard deviations
 
--   *skewness*: For `localmoran_perm`, the output of e1071::skewness() for the permutation samples underlying the standard deviates
+-   *p_ii*: p-value of local moran statistic using `pnorm()`; for `localmoran_perm` using standard deviates based on permutation sample means and standard deviations
 
--   *kurtosis*: For `localmoran_perm`, the output of e1071::kurtosis() for the permutation samples underlying the standard deviates.
+-   *p_ii_sim*: For `localmoran_perm()`, `rank()` and `punif()` of observed statistic rank for \[0, 1\] p-values using `alternative=` -p_folded_sim: the simulation folded \[0, 0.5\] range ranked p-value
+
+-   *skewness*: For `localmoran_perm`, the output of e1071::`skewness()` for the permutation samples underlying the standard deviates
+
+-   *kurtosis*: For `localmoran_perm`, the output of e1071::`kurtosis()` for the permutation samples underlying the standard deviates.
 
 #### 5.1.6.2.1. Visualizing **local Moran's I**
 
@@ -1085,7 +1241,8 @@ In this code chunk below, **tmap** functions are used prepare a choropleth map b
 visual_local_moranI <- function(input_data) {
   output <- tmap_mode("view") +
     tm_shape(input_data) +
-    tm_fill("ii") +
+    tm_fill("ii",
+            title = "Local Moran's I ii values") +
     tm_borders(alpha = 0.5) +
     tm_view(set.zoom.limits = c(11, 20)) +
     tm_layout(main.title = "local Moran's I of Total Trips",
@@ -1120,6 +1277,12 @@ visual_local_moranI(lisa_wehep)
 ```
 :::
 
+-   **Positive "ii" Value**: Indicates spatial clustering. A positive value suggests that a location has neighboring values that are similar to itself. For example, a bus stop with a high number of passenger trips (higher than the mean) surrounded by bus stops with similarly high passenger counts would result in a positive **Local Moran's I** value for that location, indicating a *high-high* cluster. Similarly, a *low-low* cluster occurs when a location with a low value is surrounded by neighbors with low values.
+
+-   **Zero "ii" Value**: A *zero* or *near-zero* value suggests no significant spatial autocorrelation at that location. This means the number of passenger trips at a bus stop is neither significantly higher nor lower than its neighbors, or that the distribution is random.
+
+-   **Negative "ii" Value**: Indicates spatial **outliers**. A negative value means that a location is significantly different from its neighbors. For instance, a bus stop with a high number of passenger trips surrounded by bus stops with low passenger counts would have a negative **Local Moran's I** value, labeled as a *high-low* **outlier**. Conversely, a *low-high* **outlier** occurs when a location with a low value is surrounded by neighbors with high values.
+
 #### 5.1.6.2.2. Visualizing **p-value of local Moran's I**
 
 In the code chunk below, **tmap** functions are used prepare a choropleth map by using value in the *p_ii_sim* field.
@@ -1128,10 +1291,14 @@ In the code chunk below, **tmap** functions are used prepare a choropleth map by
 visual_local_moranI_pvalue <- function(input_data) {
   tmap_mode("view") +
     tm_shape(input_data) +
-    tm_fill("p_ii_sim") +
+    tm_fill(
+      "p_ii_sim",
+      breaks = c(-Inf, 0.01, 0.05, 0.1, Inf),
+      title = "Local Moran's I p-values"
+    ) +
     tm_borders(alpha = 0.5) +
-    tm_layout(main.title = "p-value of local Moran's I",
-              main.title.size = 0.8) 
+    tm_layout(main.title = "Local Moran's I p-values",
+              main.title.size = 0.8)
 }
 ```
 
@@ -1161,16 +1328,25 @@ visual_local_moranI_pvalue(lisa_wehep)
 ```
 :::
 
+-   **Dark Orange Hexagons (0.10 or more)**: These areas have p-values equal to or greater than 0.10, indicating that the spatial patterns observed here are not statistically significant. The high p-values suggest that the observed spatial clustering or outliers could very well be due to random chance rather than a meaningful spatial process.
+
+-   **Orange Hexagons (0.05 to 0.10)**: The orange hexagons have p-values between 0.05 and 0.10, which are considered to be marginally significant. These could be areas where the spatial patterns are possibly meaningful, but the evidence is not strong enough to confidently rule out random variation.
+
+-   **Light Orange Hexagons (0.01 to 0.05)**: Light orange hexagons indicate areas where the p-values are low, between 0.01 and 0.05. These are generally considered statistically significant, suggesting that the observed spatial clusters or outliers are likely to reflect real spatial patterns and not just random distribution.
+
+-   **Yellow Hexagons (Less than 0.01)**: These hexagons have the lowest p-values, less than 0.01, indicating a very high level of statistical significance. The spatial patterns in these areas are highly unlikely to be due to random chance, and there is a strong indication of true spatial clustering or outlier phenomena.
+
 #### 5.1.6.2.3. Visualizing **local Moran's I and p-value**
 
-For effective comparison, it will be better for us to plot both maps next to each other as shown below.
+For effective comparison, we will plot both maps next to each other as shown below.
 
 ```{r}
 
 map1 <- function(input_data) {
   tmap_mode("view") +
   tm_shape(input_data) +
-    tm_fill("ii") +
+    tm_fill("ii",
+            title = "Local Moran's I ii values") +
     tm_borders(alpha = 0.5) +
     tm_view(set.zoom.limits = c(10, 15)) +
     tm_layout(main.title = "local Moran's I of Total Trips",
@@ -1183,11 +1359,11 @@ map2 <- function(input_data) {
     tm_shape(input_data) +
     tm_fill(
       "p_ii_sim",
-      breaks = c(0, 0.001, 0.01, 0.05, 1),
-      labels = c("0.001", "0.01", "0.05", "Not sig")
+      breaks = c(-Inf, 0.01, 0.05, 0.1, Inf),
+      title = "Local Moran's I p-values"
     ) +
     tm_borders(alpha = 0.5) +
-    tm_layout(main.title = "p-value of local Moran's I",
+    tm_layout(main.title = "Local Moran's I p-values",
               main.title.size = 0.8)
 }
 
@@ -1200,11 +1376,15 @@ map2 <- function(input_data) {
 tmap_arrange(map1(lisa_wdmp), map2(lisa_wdmp), ncol = 2)
 ```
 
+The **Local Moran's I** *ii* values map highlights an **outlier** on the western side of Singapore. However, a p-value of **0.58** suggests that the outlier is not statistically significant, implying that the observation could indeed be due to random variation. Additionally, northern, southwestern, and northeastern regions of Singapore which have positive *ii* values have p-values of less than **0.05** indicating that the spatial autocorrelation is statistically significant.
+
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
 tmap_arrange(map1(lisa_wdap), map2(lisa_wdap), ncol = 2)
 ```
+
+The **Local Moran's I** *ii* values map highlights an **outlier** on the western side of Singapore. However, a p-value of **0.2** suggests that the outlier is not statistically significant, implying that the observation could indeed be due to random variation. Additionally, northern, region of Singapore which has distinct positive *ii* value has p-value of less than **0.05** indicating that the spatial autocorrelation is statistically significant.
 
 ## Weekends/Holiday Morning Peak 11am to 2pm
 
@@ -1212,18 +1392,22 @@ tmap_arrange(map1(lisa_wdap), map2(lisa_wdap), ncol = 2)
 tmap_arrange(map1(lisa_wehmp), map2(lisa_wehmp), ncol = 2)
 ```
 
+The **Local Moran's I** *ii* values map highlights an **outlier** on the western side of Singapore. However, a p-value of **0.28** suggests that the outlier is not statistically significant, implying that the observation could indeed be due to random variation. Additionally, the eastern and northeastern regions of Singapore which have positive *ii* values have p-values of less than **0.05** indicating that the spatial autocorrelation is statistically significant.
+
 ## Weekends/Holiday Evening Peak 4pm to 7pm
 
 ```{r}
 tmap_arrange(map1(lisa_wehep), map2(lisa_wehep), ncol = 2)
 ```
+
+The **Local Moran's I** *ii* values map highlights an **outlier** on the western side of Singapore. However, a p-value of **0.22** suggests that the outlier is not statistically significant, implying that the observation could indeed be due to random variation. Additionally, the northern and eastern regions of Singapore which have positive *ii* values have p-values of less than **0.05** indicating that the spatial autocorrelation is statistically significant.
 :::
 
 #### 5.1.6.2.4. Visualizing **LISA map**
 
-LISA map is a categorical map showing outliers and clusters. There are two types of outliers namely: High-Low and Low-High outliers. Likewise, there are two type of clusters namely: High-High and Low-Low clusters. In fact, LISA map is an interpreted map by combining local Moran's I of geographical areas and their respective p-values.
+**LISA** map is a categorical map showing outliers and clusters. There are two types of outliers namely: *high-low* and *low-high* outliers. Likewise, there are two type of clusters namely: *high-high* and *low-low* clusters. In fact, **LISA** map is an interpreted map by combining **Local Moran's I** of geographical areas and their respective p-values.
 
-In lisa sf data.frame, we can find three fields contain the LISA categories. They are *mean*, *median* and *pysal*. In general, classification in *mean* will be used as shown in the code chunk below.
+In lisa sf data frame, we can find three fields contain the **LISA** categories. They are *mean*, *median* and *pysal*. In general, classification in *mean* will be used as shown in the code chunk below.
 
 ```{r}
 visualize_lisa_map <- function(input_data) {
@@ -1246,6 +1430,8 @@ visualize_lisa_map <- function(input_data) {
 visualize_lisa_map(lisa_wdmp)
 ```
 
+Low-Low clusters: Western region (Tuas, Pioneer)
+
 ## Weekday Afternoon Peak 5pm to 8pm
 
 ```{r}
@@ -1265,8 +1451,30 @@ visualize_lisa_map(lisa_wehep)
 ```
 :::
 
-#### 5.1.6.2.5. **Interpretation of Results**
+-   **Low-Low**: Areas where the value (e.g., passenger trips) is low and is surrounded by areas with similarly low values, indicating clusters of low values.
+
+-   **High-Low**: Areas where the value is high but is surrounded by areas with low values, identifying spatial outliers.
+
+-   **Low-High**: Areas where the value is low but is surrounded by areas with high values, also identifying spatial outliers.
+
+-   **High-High**: Areas where the value is high and is surrounded by areas with similarly high values, indicating clusters of high values.
+
+#### 5.1.6.2.5. Interpretation of Results
+
+Through this analysis, it has been observed that:
+
+During weekday mornings from 6am to 9am, a hexagonal grid displaying a *High-Low* pattern was noted, possibly linked to the substantial number of workers entering Singapore from Malaysia via the Tuas checkpoint. *Low-Low* clusters are present in the west and northwest, which are predominantly industrial zones and typically the end points of these commuters' morning journeys, resulting in lower trip origins from these locales. A significant H*igh-High* cluster is evident near the Woodlands checkpoint, likely due to Malaysian workers commuting to Singapore. Various *Low-High* and *High-High* regions are also scattered throughout Singapore during this time.
+
+In the weekday afternoon peak hours from 5pm to 8pm, contrary to expectations, *Low-Low* clusters persist in the western and northwestern sectors, suggesting that the workers may be utilizing company-provided shuttles or private transportation for their homeward commutes, rather than public bus services.
+
+On weekends/holidays during the late morning peak from 11am to 2pm, the western and northwestern regions maintain *Low-Low* cluster statuses, aligning with the non-working day pattern. A *High-Low* cluster is noticeable in an area known for worker lodging, which may correspond with workers departing their residences. Near the Woodlands checkpoint, a *High-High* cluster emerges, possibly attributable to Malaysians traveling home or Singaporeans visiting Malaysia.
+
+In the weekends/holidays evening peak times from 4pm to 7pm, a *High-Low* hexagonal grid is again identified, this time potentially due to workers from Malaysia arriving via the Tuas checkpoint in preparation for work the following day. A *Low-High* cluster around Sentosa island indicates an outflow of visitors in the evening.
 
 ## 6. Conclusion
 
-### 6.1. Future Work
+From the analysis and visualization, urban planners and policymakers can determine which areas have significantly high or low values and where there may be outliers. This can inform resource allocation, service delivery, and further investigation into why certain areas might be under- or over-performing. *High-High* areas may need more resources or infrastructure to support the high usage, while *Low-Low* areas may require development or marketing efforts to increase usage. *High-Low* and *Low-High* areas represent **outliers** that might be investigated for unique local characteristics or issues.
+
+### 6.1. Recommendation and Future Work
+
+For recommendations and further work, it would be prudent to investigate the feasibility of enhancing public transit options during peak weekday mornings and evenings, especially in High-Low and Low-High areas to better serve cross-border commuters. Additionally, the consistent Low-Low clusters in industrial areas during the afternoon peaks suggest a need to understand and potentially integrate private transportation systems with public options. On weekends/holidays, the transit patterns near lodging and checkpoints could be studied to optimize cross-border travel. Continual monitoring of these patterns can inform targeted improvements to the transit network, considering both temporal and spatial variations in ridership.
