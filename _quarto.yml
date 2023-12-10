@@ -19,6 +19,8 @@ website:
             href: Hands-on_Ex2/Hands-on_Ex2_c.html
           - text: "3: Processing and Visualising Flow Data"
             href: Hands-on_Ex3/Hands-on_Ex3.html
+          - text: "Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method"
+            href: Hands-on_Ex4/Hands-on_Ex4.html
       - text: In-class Exercises
         menu: 
           - text: In-class Exercise 1
@@ -31,6 +33,8 @@ website:
             href: In-class Ex/In-class_Ex2/In-class_Ex2_EHSA.html
           - text: In-class Exercise 3
             href: In-class Ex/In-class_Ex3/In-class_Ex3.html
+          - text: In-class Exercise 4
+            href: In-class Ex/In-class_Ex4/In-class_Ex4.html
       - text: Take-home Exercises
         menu: 
           - text: Take-Home Exercise 1
