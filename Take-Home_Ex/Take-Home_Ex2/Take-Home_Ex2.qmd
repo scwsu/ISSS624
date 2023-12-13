@@ -47,28 +47,91 @@ The datasets used for this study are:
 
 -   Geospatial data sets of the locations of business establishments, entertainments, food and beverage outlets, financial centres, leisure and recreation centres, retail and services stores/outlets for urban mobility study downloaded from [eLearn](https://elearn.smu.edu.sg/d2l/home/357628).
 
--   Geocoded version of *HDB Property Information* data from [data.gov.sg](https://beta.data.gov.sg/).
+-   Latest *HDB Property Information* data from [data.gov.sg](https://beta.data.gov.sg/).
 
-### 3.3. Importing the Data into R Environment
+### 3.3. Data Preparation
 
 #### **3.3.1. Importing Geospatial Data into R**
 
 The following code chunk utilizes the `st_read()` function from the **sf** package to import:
 
--   *BusStop* shapefile into R, creating a simple feature data frame named `busstop`, and
+-   *Business* shapefile into R, and save it as a sf data frame called `biz`,
 
--   *MPSZ-2019* shapefile into R and save it as a sf data frame called `mpsz`.
+-   *BusStop* shapefile into R, and save it as a sf data frame called `busstop`,
+
+-   *Entertn* shapefile into R, and save it as a sf data frame called `entn`,
+
+-   *F&B* shapefile into R, and save it as a sf data frame called `fnb`,
+
+-   *FinServ* shapefile into R, and save it as a sf data frame called `fins`,
+
+-   *Liesure&Recreation* shapefile into R, and save it as a sf data frame called `lnr`,
+
+-   *MPSZ-2019* shapefile into R and save it as a sf data frame called `mpsz`,
+
+-   *RapidTransitSystemStation* shapefile into R, and save it as a sf data frame called `mrt`,
+
+-   *Retails* shapefile into R, and save it as a sf data frame called `retails`, and
+
+-   *Train_Station_Exit_Layer* shapefile into R, and save it as a sf data frame called `mrtex`.
+
+```{r}
+biz <- st_read(dsn = "data/geospatial",
+                   layer = "Business") %>%
+  st_transform(crs = 3414) 
+```
 
 ```{r}
 busstop <- st_read(dsn = "data/geospatial",
                    layer = "BusStop") %>%
-  st_transform(crs = 3414) 
-glimpse(busstop)
+  st_transform(crs = 3414)
+```
+
+```{r}
+entn <- st_read(dsn = "data/geospatial",
+                   layer = "Entertn") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+fnb <- st_read(dsn = "data/geospatial",
+                   layer = "F&B") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+fins <- st_read(dsn = "data/geospatial",
+                   layer = "FinServ") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+lnr <- st_read(dsn = "data/geospatial",
+                   layer = "Liesure&Recreation") %>%
+  st_transform(crs = 3414)
 ```
 
 ```{r}
 mpsz <- st_read(dsn = "data/geospatial",
                 layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+mrt <- st_read(dsn = "data/geospatial",
+                layer = "RapidTransitSystemStation") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+retails <- st_read(dsn = "data/geospatial",
+                   layer = "Retails") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+mrtex <- st_read(dsn = "data/geospatial",
+                   layer = "Train_Station_Exit_Layer") %>%
   st_transform(crs = 3414)
 ```
 
@@ -310,4 +373,12 @@ It is time to save the output into an rds file format.
 
 ```{r}
 write_rds(od_data, "data/rds/od_data.rds")
+```
+
+```{r}
+od_data <- read_rds("data/rds/od_data.rds")
+```
+
+```{r}
+od_data1 <- od_data[od_data$ORIGIN_SZ!=od_data$DESTIN_SZ,]
 ```
