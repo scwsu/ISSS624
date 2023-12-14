@@ -27,13 +27,13 @@ Therefore, the project's primary goal is to conduct a case study illustrating th
 
 ## 2. Getting Started
 
-The following code chunk installs and loads **tmap**, **sf**, **DT**, **jsonlite**, **performance**, **tidyverse**, **knitr**, **ggpubr**, **httr**, **jsonlite** packages into R environment. [`pacman()`](https://cran.r-project.org/web/packages/pacman/readme/README.html)is a R package.
+The following code chunk installs and loads **tmap**, **sf**, **sp**, **stplanr**, **DT**, **performance**, **tidyverse**, **httr**, **reshape2**, **ggpubr**, **corrplot** packages into R environment. [`pacman()`](https://cran.r-project.org/web/packages/pacman/readme/README.html)is a R package.
 
 ```{r}
-pacman::p_load(tmap, sf, DT, performance, tidyverse, knitr, ggpubr, httr, jsonlite)
+pacman::p_load(tmap, sf, sp, stplanr, DT, performance, tidyverse, httr, reshape2, ggpubr, corrplot, knitr)
 ```
 
-## 3. Data Preparation
+## 3. The Data
 
 The datasets used for this study are:
 
@@ -49,93 +49,9 @@ The datasets used for this study are:
 
 -   Latest *HDB Property Information* data from [data.gov.sg](https://beta.data.gov.sg/).
 
-### 3.3. Data Preparation
+## 4. Data Preparation
 
-#### **3.3.1. Importing Geospatial Data into R**
-
-The following code chunk utilizes the `st_read()` function from the **sf** package to import:
-
--   *Business* shapefile into R, and save it as a sf data frame called `biz`,
-
--   *BusStop* shapefile into R, and save it as a sf data frame called `busstop`,
-
--   *Entertn* shapefile into R, and save it as a sf data frame called `entn`,
-
--   *F&B* shapefile into R, and save it as a sf data frame called `fnb`,
-
--   *FinServ* shapefile into R, and save it as a sf data frame called `fins`,
-
--   *Liesure&Recreation* shapefile into R, and save it as a sf data frame called `lnr`,
-
--   *MPSZ-2019* shapefile into R and save it as a sf data frame called `mpsz`,
-
--   *RapidTransitSystemStation* shapefile into R, and save it as a sf data frame called `mrt`,
-
--   *Retails* shapefile into R, and save it as a sf data frame called `retails`, and
-
--   *Train_Station_Exit_Layer* shapefile into R, and save it as a sf data frame called `mrtex`.
-
-```{r}
-biz <- st_read(dsn = "data/geospatial",
-                   layer = "Business") %>%
-  st_transform(crs = 3414) 
-```
-
-```{r}
-busstop <- st_read(dsn = "data/geospatial",
-                   layer = "BusStop") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-entn <- st_read(dsn = "data/geospatial",
-                   layer = "Entertn") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-fnb <- st_read(dsn = "data/geospatial",
-                   layer = "F&B") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-fins <- st_read(dsn = "data/geospatial",
-                   layer = "FinServ") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-lnr <- st_read(dsn = "data/geospatial",
-                   layer = "Liesure&Recreation") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-mpsz <- st_read(dsn = "data/geospatial",
-                layer = "MPSZ-2019") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-mrt <- st_read(dsn = "data/geospatial",
-                layer = "RapidTransitSystemStation") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-retails <- st_read(dsn = "data/geospatial",
-                   layer = "Retails") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-mrtex <- st_read(dsn = "data/geospatial",
-                   layer = "Train_Station_Exit_Layer") %>%
-  st_transform(crs = 3414)
-```
-
-#### **3.3.2. Importing Attribute Data into R**
+### **3.1. OD Data**
 
 To begin, we utilize the `read_csv()` function from the **readr** package to import the *Passenger Volume by Origin Destination Bus Stops* dataset for the month of October 2023, downloaded from LTADataMall and name it as `odbus`.
 
@@ -153,232 +69,1027 @@ odbus$DESTINATION_PT_CODE <- as.factor(odbus$DESTINATION_PT_CODE)
 glimpse(odbus)
 ```
 
-Next, we utilize the `read_csv()` function from the **readr** package to import the *HDB Property Information* data, downloaded from [data.gov.sg](https://beta.data.gov.sg/) and name it as `hdb`.
+For the purpose of this project, we will study data related to commuting patterns on weekends/holiday during 11am \~ 2pm.
+
+The following code chunk creates a new data frame called `wemp` by filtering the `odbus` data frame to retain only weekends/holiday data between **11AM** and **2PM**, grouping it by *ORIGIN_PT_CODE*, and then calculating the total number of trips for each origin point. Afterward, it displays the first few rows of the `wemp` data frame in a tabular format using the `kable()` function for visual inspection or reporting purposes.
 
 ```{r}
-hdb <- read_csv("data/aspatial/HDBPropertyInformation.csv") 
-```
-
-```{r}
-geocode <- function(block, street) {
-  base_url <- "https://www.onemap.gov.sg/api/common/elastic/search"
-  address <- paste(block, street, sep = " ")
-  query <- list("searchVal" = address, 
-                "returnGeom" = "Y",
-                "getAddrDetails" = "N",
-                "pageNum" = "1")
-  
-  res <- GET(base_url, query = query)
-  restext<-content(res, as="text")
-  
-  output <- fromJSON(restext)  %>% 
-    as.data.frame %>%
-    select(results.LATITUDE, results.LONGITUDE)
-
-  return(output)
-}
-```
-
-```{r}
-hdb$LATITUDE <- 0
-hdb$LONGITUDE <- 0
-
-for (i in 1:nrow(hdb)){
-  temp_output <- geocode(hdb[i, 1], hdb[i, 2])
-  
-  hdb$LATITUDE[i] <- temp_output$results.LATITUDE
-  hdb$LONGITUDE[i] <- temp_output$results.LONGITUDE
-}
-```
-
-The following code chunk is used to save the `hdb` data object in rds (R Data Serialization) format file named *hdb.rds* in the **data/rds** directory.
-
-```{r}
-write_rds(hdb, "data/rds/hdb.rds")
-```
-
-The following code chunk is used to import the saved *hdb.rds* into R environment and name it as `hdb_geo`.
-
-```{r}
-hdb_geo <- read_rds("data/rds/hdb.rds")
-```
-
-#### 3.3.3. **Extracting the study data**
-
-For the purpose of this project, we will study data related to commuting patterns on weekdays during the busy afternoon rush hours (5pm \~ 8pm).
-
-The following code chunk creates a new data frame called `wdap` by filtering the `odbus` data frame to retain only weekday data between **5PM** and **8PM**, grouping it by *ORIGIN_PT_CODE*, and then calculating the total number of trips for each origin point. Afterward, it displays the first few rows of the `wdap` data frame in a tabular format using the `kable()` function for visual inspection or reporting purposes.
-
-```{r}
-wdap <- odbus %>%
-  filter(DAY_TYPE == "WEEKDAY") %>%
-  filter(TIME_PER_HOUR >= 17 &
-           TIME_PER_HOUR <= 20) %>%
-  group_by(ORIGIN_PT_CODE,
-           DESTINATION_PT_CODE) %>%
+wemp <- odbus %>%
+  filter(DAY_TYPE == "WEEKENDS/HOLIDAY") %>%
+  filter(TIME_PER_HOUR >= 11 & TIME_PER_HOUR <= 14) %>%
+  group_by(ORIGIN_PT_CODE, DESTINATION_PT_CODE) %>%
   summarise(TRIPS = sum(TOTAL_TRIPS))
 
-kable(head(wdap))
+kable(head(wemp))
 ```
 
-The following code chunk is used to save the `wdap` data object in rds (R Data Serialization) format file named *wdap.rds* in the **data/rds** directory.
+The following code chunk is used to save the `wemp` data object in rds (R Data Serialization) format file named *wemp.rds* in the **data/rds** directory.
 
 ```{r}
-write_rds(wdap, "data/rds/wdap.rds")
+write_rds(wemp, "data/rds/wemp.rds")
 ```
 
-The following code chunk is used to import the saved *wdap.rds* into R environment.
+The following code chunk is used to import the saved *wemp.rds* into R environment.
 
 ```{r}
-wdap <- read_rds("data/rds/wdap.rds")
+wemp <- read_rds("data/rds/wemp.rds")
 ```
 
-```{r}
-busstop_wdap <- left_join(busstop, wdap,
-            by = c("BUS_STOP_N" = "ORIGIN_PT_CODE")) %>%
-  rename("ORIGIN_PT_CODE" = "BUS_STOP_N")
-```
+### 3.2. Geospatial Data
 
 ```{r}
-hexagon_grid <- st_make_grid(busstop_wdap, c(750), what = "polygon", square = FALSE)
-
-# To sf and add grid ID
-hexagon_grid_sf <- st_sf(hexagon_grid) %>%
-  # add grid ID
-  mutate(grid_id = 1:length(lengths(hexagon_grid)))
-
-# Perform spatial intersection to count points within each hexagon by bus stop origin
-point_counts_origin <-
-  st_intersection(hexagon_grid_sf, busstop_wdap) %>%
-  group_by(grid_id) %>%
-  summarize(
-    TOT_TRIPS = sum(TRIPS, na.rm = TRUE),
-    ORIGIN_PT_CODE = paste(ORIGIN_PT_CODE, collapse = ", ")
-  )
-
-# Merge the point counts back into the honeycomb grid by bus stop origin
-hexagon_grid_sf_origin <- hexagon_grid_sf %>%
-  st_join(point_counts_origin, by = "grid_id")
-
-# remove grid without value of 0 (i.e. no points in side that grid)
-honeycomb_count_origin <-
-  filter(hexagon_grid_sf_origin, TOT_TRIPS > 0)
-
+busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
+  st_transform(crs = 3414)
 ```
 
 ```{r}
-tmap_mode("view")
-tm_shape(honeycomb_count_origin) +
-  tm_fill(
-    col = "TOT_TRIPS",
-    palette = "Reds",
-    style = "quantile",
-    title = "Number of Trips by Bus Stop Origin",
-    id = "grid_id",
-    showNA = FALSE,
-    alpha = 0.6,
-    popup.vars = c("Number of Trips: " = "TOT_TRIPS",
-                   "Bus STOP ORIGIN:" = "ORIGIN_PT_CODE"),
-    popup.format = list(
-      TOT_TRIPS = list(format = "f", digits = 0),
-      ORIGIN_PT_CODE = list(format = "f", digits = 0)
-    )
-  ) +
-  tm_borders(col = "grey40", lwd = 0.7)
-  
+mpsz <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
 ```
 
-### **3.4. Data Wrangling**
+```{r}
+mpsz <- write_rds(mpsz, "data/rds/mpsz.rds")
+```
 
-### **3.4.1. Combining Busstop and mpsz**
+### 3.3. Data Wrangling
+
+#### **3.3.1. Combining Busstop and mpsz**
 
 The following code chunk populates the planning subzone code (i.e. *SUBZONE_C*) of `mpsz` sf data frame into `busstop` sf data frame.
 
 ```{r}
 busstop_mpsz <- st_intersection(busstop, mpsz) %>%
-  select(BUS_STOP_N, SUBZONE_C) %>%
-  st_drop_geometry()
+  select(BUS_STOP_N, SUBZONE_C)
 ```
-
--   `st_intersection()` is used to perform point and polygon overlay and the output will be in point sf object.
-
--   `select()` of **dplyr** package is then use to retain only *BUS_STOP_N* and *SUBZONE_C* in the `busstop_mpsz` sf data frame.
-
--   Five bus stops are excluded in the resultant data frame because they are outside of Singapore boundary.
 
 ```{r}
 datatable(busstop_mpsz)
 ```
 
-Before moving to the next step, it is wise to save the output into rds format.
-
 ```{r}
 write_rds(busstop_mpsz, "data/rds/busstop_mpsz.rds")  
 ```
 
-Next, we are going to append the planning subzone code from `busstop_mpsz` data frame onto `wdap` data frame.
+### 3.4. Hexagon Layer
 
 ```{r}
-od_data <- left_join(wdap , busstop_mpsz,
-                     by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
+hx_grid <- st_make_grid(busstop_mpsz, cellsize = 750, what = "polygons", square = FALSE) %>% st_transform(crs = 3414)
+
+# convert to sf and add grid ID
+grid_sf <- st_sf(hx_grid)
+```
+
+```{r}
+write_sf(grid_sf, "data/geospatial/hexagon.shp")
+```
+
+```{r}
+hexagon <- st_read(dsn = "data/geospatial", layer = "hexagon") %>%
+  rename(GRID_ID = FID) %>%
+  st_transform(crs = 3414) 
+```
+
+### 3.5. Combining Geospatial Data and Hexagon Layer
+
+```{r}
+od_data <- st_join(busstop_mpsz , hexagon,
+            by = c("geometry" = "geometry")) 
+```
+
+```{r}
+hx_busstop <- st_join(hexagon, busstop, by = c("GRID_ID" = "GRID_ID"))
+```
+
+```{r}
+hx_busstop <- hx_busstop %>%
+  drop_na() %>%
+  group_by(GRID_ID)
+```
+
+```{r}
+write_rds(hx_busstop, "data/rds/hx_busstop.rds")
+```
+
+### 3.6. Combining `wemp` with `od_data`
+
+```{r}
+flow_data <- wemp %>%
+  left_join(od_data, by = c("ORIGIN_PT_CODE" = "BUS_STOP_N")) %>%
   rename(ORIGIN_BS = ORIGIN_PT_CODE,
          ORIGIN_SZ = SUBZONE_C,
-         DESTIN_BS = DESTINATION_PT_CODE)
+         DESTIN_BS = DESTINATION_PT_CODE) %>%
+  left_join(od_data, by = c("DESTIN_BS" = "BUS_STOP_N"))
 ```
 
-Before we continue, the following code chunk is used to check for duplicating records.
-
 ```{r}
-duplicate <- od_data %>%
+duplicate <- flow_data %>%
   group_by_all() %>%
-  filter(n() > 1) %>%
-  ungroup()
-```
-
-If duplicated records are found, the code chunk below will be used to retain the unique records.
-
-```{r}
-od_data <- unique(od_data)
-```
-
-It is a good practice to confirm if the duplicating records issue has been addressed fully.
-
-Next, we will update *od_data* data frame with the planning subzone codes.
-
-```{r}
-od_data <- left_join(od_data , busstop_mpsz,
-                     by = c("DESTIN_BS" = "BUS_STOP_N")) 
-```
-
-```{r}
-duplicate <- od_data %>%
-  group_by_all() %>%
-  filter(n() > 1) %>%
+  filter(n()>1) %>%
   ungroup()
 ```
 
 ```{r}
-od_data <- unique(od_data)
+flow_data2 <- unique(flow_data)
 ```
 
 ```{r}
-od_data <- od_data %>%
-  rename(DESTIN_SZ = SUBZONE_C) %>%
+flow_data2 <- flow_data2 %>%
   drop_na() %>%
-  group_by(ORIGIN_SZ, DESTIN_SZ) %>%
+  group_by(GRID_ID.x, GRID_ID.y) %>%
   summarise(TRIPS = sum(TRIPS))
 ```
 
-It is time to save the output into an rds file format.
-
 ```{r}
-write_rds(od_data, "data/rds/od_data.rds")
+write_rds(flow_data2, "data/rds/flow_data2.rds")
 ```
 
 ```{r}
-od_data <- read_rds("data/rds/od_data.rds")
+flow_data2 <- read_rds("data/rds/flow_data2.rds")
+```
+
+## 4. Visualizing Spatial Interactions
+
+### 4.1. Removing Intra-zonal Flows
+
+```{r}
+inter_flow_data <- flow_data2 %>% 
+  filter(GRID_ID.x != GRID_ID.y)
+```
+
+### 4.2. Creating Desired Lines
+
+```{r}
+flowLine <- od2line(flow = inter_flow_data, 
+                    zones = hexagon,
+                    zone_code = "GRID_ID")
+```
+
+### 4.3. Visualizing Desired Lines
+
+::: panel-tabset
+## Total Trips
+
+```{r}
+tmap_mode("plot")
 ```
 
 ```{r}
-od_data1 <- od_data[od_data$ORIGIN_SZ!=od_data$DESTIN_SZ,]
+tmap_options(check.and.fix = TRUE)
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+flowLine %>%  
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
 ```
+
+## Trips \>= 1000
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+flowLine %>%  
+  filter(TRIPS >= 1000) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+```
+
+## Trips \>= 5000
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+flowLine %>% 
+    filter(TRIPS >= 5000) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+```
+
+## Trips \>= 10000
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+flowLine %>%  
+    filter(TRIPS >= 10000) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+```
+:::
+
+# **5. Aggregating propulsive and attractiveness variables**
+
+### 5.1. Propulsive Variables
+
+::: panel-tabset
+## HDB
+
+We utilize the `read_csv()` function from the **readr** package to import the *HDB Property Information* data, downloaded from [data.gov.sg](https://beta.data.gov.sg/) and name it as `hdb`.
+
+```{r}
+hdb <- read_csv("data/aspatial/hdb.csv") 
+```
+
+```{r}
+coordinates <- hdb[, c("lng", "lat")]  
+spatial_points <- SpatialPointsDataFrame(coordinates, hdb)
+```
+
+```{r}
+# Create a SpatialPoints object
+coordinates <- hdb[, c("lng", "lat")]
+spatial_points <- SpatialPoints(coords = coordinates)
+
+# Define the current CRS (WGS84 - EPSG:4326)
+proj4string(spatial_points) <- CRS("+proj=longlat +datum=WGS84")
+
+# Convert SpatialPoints to an sf object
+sf_points <- st_as_sf(spatial_points)
+
+# Define EPSG:3414 CRS
+epsg_3414_crs <- st_crs(3414)
+
+# Transform the sf object to EPSG:3414
+sf_points_3414 <- st_transform(sf_points, crs = epsg_3414_crs)
+
+# Convert back to SpatialPoints
+spatial_points_3414 <- as(sf_points_3414, "Spatial")
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(spatial_points_3414) +
+  tm_dots()
+```
+
+```{r}
+sf_spatial_points_3414 <- st_as_sf(spatial_points_3414)
+
+intersections <- st_intersects(hx_busstop, sf_spatial_points_3414)
+
+hx_busstop$HDB_COUNT <- lengths(intersections)
+```
+
+```{r}
+summary(hx_busstop$HDB_COUNT)
+```
+
+## Business
+
+```{r}
+business <- st_read(dsn = "data/geospatial",
+                   layer = "Business") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+hx_busstop$`BUSINESS_COUNT`<- lengths(
+  st_intersects(hx_busstop, business))
+```
+
+```{r}
+summary(hx_busstop$BUSINESS_COUNT)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(business) +
+  tm_dots() 
+```
+
+## School
+
+```{r}
+url <- "https://www.onemap.gov.sg/api/common/elastic/search"
+
+csv <- read_csv("data/aspatial/Generalinformationofschools.csv")
+```
+
+```{r}
+postcodes <- csv$`postal_code`
+
+found <- data.frame()
+not_found <- data.frame()
+
+for (postcode in postcodes) {
+  query <-
+    list(
+      'searchVal' = postcode,
+      'returnGeom' = 'Y',
+      'getAddrDetails' = 'Y',
+      'pageNum' = '1'
+    )
+  res <- GET(url, query = query)
+  
+  if ((content(res)$found) != 0) {
+    found <- rbind(found, data.frame(content(res))[4:13])
+  } else{
+    not_found = data.frame(postcode)
+  }
+}
+```
+
+```{r}
+merged <- merge(csv, found, by.x = 'postal_code', by.y = 'results.POSTAL', all = TRUE)
+write.csv(merged, file = "data/aspatial/schools.csv")
+write.csv(not_found, file = "data/aspatial/not_found.csv")
+```
+
+```{r}
+schools <- read_csv("data/aspatial/schools.csv") %>%
+  rename(latitude = "results.LATITUDE",
+         longitude = "results.LONGITUDE") %>%
+  select(postal_code, school_name, latitude, longitude)
+```
+
+```{r}
+schools[257,"latitude"] <- 1.3887
+schools[257,"longitude"] <- 103.7652
+```
+
+```{r}
+schools_sf <- st_as_sf(schools,
+                       coords = c("longitude", "latitude"),
+                       crs = 4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(schools_sf) +
+  tm_dots()
+```
+
+```{r}
+hx_busstop$`SCHOOL_COUNT`<- lengths(
+  st_intersects(hx_busstop, schools_sf))
+```
+
+```{r}
+summary(hx_busstop$`SCHOOL_COUNT`)
+```
+:::
+
+### 5.2. Attractiveness Variables
+
+::: panel-tabset
+## Retails
+
+```{r}
+retails <- st_read(dsn = "data/geospatial",
+                   layer = "Retails") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+hx_busstop$`RETAILS_COUNT`<- lengths(
+  st_intersects(hx_busstop, retails))
+```
+
+```{r}
+summary(hx_busstop$`RETAILS_COUNT`)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(retails) +
+  tm_dots()
+```
+
+## F&B
+
+```{r}
+fnb <- st_read(dsn = "data/geospatial",
+                   layer = "F&B") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+hx_busstop$`FNB_COUNT`<- lengths(
+  st_intersects(hx_busstop, fnb))
+```
+
+```{r}
+summary(hx_busstop$`FNB_COUNT`)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(fnb) +
+  tm_dots()
+```
+
+## Train Station Exit
+
+```{r}
+mrt_exit <- st_read(dsn = "data/geospatial",
+                   layer = "Train_Station_Exit_Layer") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+hx_busstop$`EXIT_COUNT` <- lengths(
+  st_intersects(hx_busstop, mrt_exit))
+```
+
+```{r}
+summary(hx_busstop$`EXIT_COUNT`)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(mrt_exit) +
+  tm_dots()
+```
+:::
+
+```{r}
+tidy_hx_busstop <- hx_busstop %>%
+  st_drop_geometry() %>%
+  select(GRID_ID, HDB_COUNT, SCHOOL_COUNT, BUSINESS_COUNT, RETAILS_COUNT, FNB_COUNT, EXIT_COUNT)
+```
+
+```{r}
+tidy_data <- flow_data2 %>%
+  left_join(tidy_hx_busstop,
+            by = c("GRID_ID.y" = "GRID_ID"))
+```
+
+```{r}
+summary(tidy_data)
+```
+
+```{r}
+tidy_data$HDB_COUNT <- ifelse(
+  tidy_data$HDB_COUNT == 0,
+  0.99, tidy_data$HDB_COUNT)
+tidy_data$BUSINESS_COUNT <- ifelse(
+  tidy_data$BUSINESS_COUNT == 0,
+  0.99, tidy_data$BUSINESS_COUNT)
+tidy_data$SCHOOL_COUNT <- ifelse(
+  tidy_data$SCHOOL_COUNT == 0,
+  0.99, tidy_data$SCHOOL_COUNT)
+tidy_data$RETAILS_COUNT <- ifelse(
+  tidy_data$RETAILS_COUNT == 0,
+  0.99, tidy_data$RETAILS_COUNT)
+tidy_data$FNB_COUNT <- ifelse(
+  tidy_data$FNB_COUNT == 0,
+  0.99, tidy_data$FNB_COUNT)
+tidy_data$EXIT_COUNT <- ifelse(
+  tidy_data$EXIT_COUNT == 0,
+  0.99, tidy_data$EXIT_COUNT)
+```
+
+```{r}
+summary(tidy_data)
+```
+
+```{r}
+duplicate <- tidy_data %>%
+  group_by_all() %>%
+  filter(n() > 1) %>%
+  ungroup()
+```
+
+```{r}
+tidy_data <- unique(tidy_data)
+```
+
+```{r}
+summary(tidy_data)
+```
+
+```{r}
+write_rds(tidy_data,"data/rds/tidy_data.rds")
+```
+
+## 6. Computing Distance Matrix
+
+### 6.1. **Converting from sf data.table to SpatialPolygonsDataFrame**
+
+```{r}
+hx_busstop_sp <- as(hx_busstop, "Spatial")
+hx_busstop_sp
+```
+
+### 6.2. **Computing the distance matrix**
+
+```{r}
+dist <- spDists(hx_busstop_sp,
+                longlat = FALSE)
+head(dist, n = c(10, 10))
+```
+
+```{r}
+sz <- hx_busstop$GRID_ID
+```
+
+```{r}
+colnames(dist) <- paste0(sz)
+rownames(dist) <- paste0(sz)
+```
+
+```{r}
+distPair <- melt(dist) %>%
+  rename(dist = value)
+head(distPair, 10)
+```
+
+```{r}
+distPair %>%
+  filter(dist > 0) %>%
+  summary()
+```
+
+```{r}
+distPair$dist <- ifelse(distPair$dist == 0,
+                        300, distPair$dist)
+```
+
+```{r}
+distPair %>%
+  summary()
+```
+
+```{r}
+distPair <- distPair %>%
+  rename(orig = Var1,
+         dest = Var2)
+```
+
+```{r}
+write_rds(distPair, "data/rds/distPair.rds") 
+```
+
+# **7. Spatial Interaction Modelling**
+
+### 7.1.
+
+```{r}
+head(tidy_data, 10)
+```
+
+### 7.2. **Separating Intra-Flow from Trips df**
+
+```{r}
+tidy_data$FlowNoIntra <- ifelse(
+  tidy_data$GRID_ID.x == tidy_data$GRID_ID.y, 
+  0, tidy_data$TRIPS)
+tidy_data$offset <- ifelse(
+  tidy_data$GRID_ID.x == tidy_data$GRID_ID.y, 
+  0.000001, 1)
+```
+
+### 7.3. **Combining the Data with Distance Value**
+
+```{r}
+tidy_data$GRID_ID.x <- as.factor(tidy_data$GRID_ID.x)
+tidy_data$GRID_ID.y <- as.factor(tidy_data$GRID_ID.y)
+```
+
+```{r}
+tidy_data$GRID_ID.x <- as.integer(as.character(tidy_data$GRID_ID.x))
+tidy_data$GRID_ID.y <- as.integer(as.character(tidy_data$GRID_ID.y))
+
+
+tidy_data1 <- tidy_data %>%
+  left_join (distPair,
+             by = c("GRID_ID.x" = "orig",
+                    "GRID_ID.y" = "dest"))
+```
+
+```{r}
+duplicate <- tidy_data1 %>%
+  group_by_all() %>%
+  filter(n() > 1) %>%
+  ungroup()
+```
+
+```{r}
+tidy_data1 <- unique(tidy_data1)
+```
+
+```{r}
+write_rds(tidy_data1, "data/rds/SIM_data.rds")
+```
+
+### 7.2. **Calibrating Spatial Interaction Models**
+
+7.2.1.
+
+```{r}
+SIM_data <- read_rds("data/rds/SIM_data.rds")
+```
+
+7.2.2.
+
+```{r}
+ggplot(data = SIM_data,
+       aes(x = TRIPS)) +
+  geom_histogram()
+```
+
+```{r}
+ggplot(data = SIM_data,
+       aes(x = dist,
+           y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm)
+```
+
+```{r}
+ggplot(data = SIM_data,
+       aes(x = log(dist),
+           y = log(TRIPS))) +
+  geom_point() +
+  geom_smooth(method = lm)
+```
+
+#### 7.2.3. **Checking for variables with zero values**
+
+```{r}
+summary(SIM_data)
+```
+
+```{r}
+SIM_data$GRID_ID.x <- as.character(SIM_data$GRID_ID.x)
+SIM_data$GRID_ID.y <- as.character(SIM_data$GRID_ID.y)
+```
+
+```{r}
+inter_zonal_flow <- SIM_data %>%
+  filter(FlowNoIntra > 0) %>%
+  na.omit()
+```
+
+```{r}
+summary(inter_zonal_flow)
+```
+
+### 7.3. **Correlation Analysis**
+
+```{r}
+inter_zonal_flow$HDB_COUNT<- as.numeric(inter_zonal_flow$HDB_COUNT)
+
+inter_zonal_flow$BUSINESS_COUNT<- as.numeric(inter_zonal_flow$BUSINESS_COUNT)
+
+inter_zonal_flow$SCHOOL_COUNT<- as.numeric(inter_zonal_flow$SCHOOL_COUNT)
+
+inter_zonal_flow$RETAILS_COUNT<- as.numeric(inter_zonal_flow$RETAILS_COUNT)
+
+inter_zonal_flow$FNB_COUNT<- as.numeric(inter_zonal_flow$FNB_COUNT)  
+
+inter_zonal_flow$EXIT_COUNT<- as.numeric(inter_zonal_flow$EXIT_COUNT)   
+```
+
+```{r}
+vars.cor = cor(inter_zonal_flow[,4:9])
+corrplot.mixed(vars.cor,
+         lower = "ellipse", 
+               upper = "number",
+               tl.pos = "lt",
+               diag = "l",
+               tl.col = "black")
+```
+
+### 7.4. **Unconstrained Spatial Interaction Model**
+
+::: panel-tabset
+## With RETAILS_COUNT
+
+```{r}
+uncSIM <- glm(formula = TRIPS ~ 
+                  log(HDB_COUNT) +
+                  log(BUSINESS_COUNT) +
+                  log(SCHOOL_COUNT) +
+                  log(RETAILS_COUNT) +
+                  log(FNB_COUNT) +
+                  log(EXIT_COUNT) +
+                  log(dist),
+              family = poisson(link = "log"),
+              data = inter_zonal_flow,
+              na.action = na.exclude)
+uncSIM
+```
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r <- cor(observed, estimated)
+  R2 <- r^2
+  R2
+}
+```
+
+```{r}
+CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
+```
+
+## Without RETAILS_COUNT
+
+```{r}
+uncSIM <- glm(formula = TRIPS ~ 
+                  log(HDB_COUNT) +
+                  log(BUSINESS_COUNT) +
+                  log(SCHOOL_COUNT) +
+                  log(FNB_COUNT) +
+                  log(EXIT_COUNT) +
+                  log(dist),
+              family = poisson(link = "log"),
+              data = inter_zonal_flow,
+              na.action = na.exclude)
+uncSIM
+```
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r <- cor(observed, estimated)
+  R2 <- r^2
+  R2
+}
+```
+
+```{r}
+CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
+```
+:::
+
+### 7.5. **Origin (Production) constrained SIM**
+
+```{r}
+orcSIM <- glm(formula = TRIPS ~ 
+                  GRID_ID.x +
+                  log(HDB_COUNT) +
+                  log(BUSINESS_COUNT) +
+                  log(SCHOOL_COUNT) +
+                  log(RETAILS_COUNT) +
+                  log(FNB_COUNT) +
+                  log(EXIT_COUNT) +
+                  log(dist) - 1,
+              family = poisson(link = "log"),
+              data = inter_zonal_flow,
+              na.action = na.exclude)
+orcSIM
+```
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r <- cor(observed, estimated)
+  R2 <- r^2
+  R2
+}
+```
+
+```{r}
+CalcRSquared(orcSIM$data$TRIPS, orcSIM$fitted.values)
+```
+
+### 7.6. **Destination constrained**
+
+```{r}
+decSIM <- glm(formula = TRIPS ~ 
+                  GRID_ID.y +
+                  log(HDB_COUNT) +
+                  log(BUSINESS_COUNT) +
+                  log(SCHOOL_COUNT) +
+                  log(RETAILS_COUNT) +
+                  log(FNB_COUNT) +
+                  log(EXIT_COUNT) +
+                  log(dist) - 1,
+              family = poisson(link = "log"),
+              data = inter_zonal_flow,
+              na.action = na.exclude)
+decSIM
+```
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r <- cor(observed, estimated)
+  R2 <- r^2
+  R2
+}
+```
+
+```{r}
+CalcRSquared(decSIM$data$TRIPS, decSIM$fitted.values)
+```
+
+7.7. **Doubly constrained model**
+
+```{r}
+dbcSIM <- glm(formula = TRIPS ~ 
+                  GRID_ID.x +
+                  GRID_ID.y +
+                  log(HDB_COUNT) +
+                  log(BUSINESS_COUNT) +
+                  log(SCHOOL_COUNT) +
+                  log(RETAILS_COUNT) +
+                  log(FNB_COUNT) +
+                  log(EXIT_COUNT) +
+                  log(dist),
+              family = poisson(link = "log"),
+              data = inter_zonal_flow,
+              na.action = na.exclude)
+dbcSIM
+```
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r <- cor(observed, estimated)
+  R2 <- r^2
+  R2
+}
+```
+
+```{r}
+CalcRSquared(dbcSIM$data$TRIPS, dbcSIM$fitted.values)
+```
+
+# **8. Model comparison**
+
+8.1. **Statistical measures**
+
+```{r}
+model_list <- list(
+  Unconstrained= uncSIM,
+  Origin_Constrained = orcSIM,
+  Destination_Constrained = decSIM,
+  Doubly_Constrained = dbcSIM)
+```
+
+```{r}
+compare_performance(model_list,
+                    metrics = "RMSE")
+```
+
+8.2. **Visualising fitted values**
+
+```{r}
+df <- as.data.frame(uncSIM$fitted.values) %>%
+  round(digits = 0)
+```
+
+```{r}
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df) %>%
+  rename(uncTRIPS = "uncSIM$fitted.values")
+```
+
+```{r}
+df1 <- as.data.frame(orcSIM$fitted.values) %>%
+  round(digits = 0)
+```
+
+```{r}
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df1) %>%
+  rename(orcTRIPS = "orcSIM$fitted.values")
+```
+
+```{r}
+df2 <- as.data.frame(decSIM$fitted.values) %>%
+  round(digits = 0)
+```
+
+```{r}
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df2) %>%
+  rename(decTRIPS = "decSIM$fitted.values")
+```
+
+```{r}
+df3 <- as.data.frame(dbcSIM$fitted.values) %>%
+  round(digits = 0)
+```
+
+```{r}
+inter_zonal_flow <- inter_zonal_flow %>%
+  cbind(df3) %>%
+  rename(dbcTRIPS = "dbcSIM$fitted.values")
+```
+
+```{r}
+unc_p <- ggplot(data = inter_zonal_flow,
+                aes(x = uncTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  coord_cartesian(xlim=c(0,20000),
+                  ylim=c(0,20000))
+
+orc_p <- ggplot(data = inter_zonal_flow,
+                aes(x = orcTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  coord_cartesian(xlim=c(0,20000),
+                  ylim=c(0,20000))
+
+
+dec_p <- ggplot(data = inter_zonal_flow,
+                aes(x = decTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  coord_cartesian(xlim=c(0,20000),
+                  ylim=c(0,20000))
+
+
+dbc_p <- ggplot(data = inter_zonal_flow,
+                aes(x = dbcTRIPS,
+                    y = TRIPS)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  coord_cartesian(xlim=c(0,20000),
+                  ylim=c(0,20000))
+```
+
+```{r}
+ggarrange(unc_p, orc_p, dec_p, dbc_p,
+          ncol = 2,
+          nrow = 2)
+```
+
+# **9. Modelling Results**
+
+# **10. Conclusion**
