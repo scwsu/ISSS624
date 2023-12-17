@@ -2,7 +2,7 @@
 title: "Applied Spatial Interaction Models: A case study of Singapore public bus commuter flows"
 author: "Su Sandi Cho Win"
 date: "10 December 2023"
-date-modified: "03 December 2023"
+date-modified: "17 December 2023"
 format: html
 execute:
   echo: true
@@ -95,7 +95,13 @@ The following code chunk is used to import the saved *wemp.rds* into R environme
 wemp <- read_rds("data/rds/wemp.rds")
 ```
 
-### 3.2. Geospatial Data
+### 3.2. Importing Geospatial Data
+
+The following code chunk utilizes the `st_read()` function from the **sf** package to import:
+
+-   *BusStop* shapefile into R, creating a simple feature data frame named `busstop`, and
+
+-   *MPSZ-2019* shapefile into R and save it as a sf data frame called `mpsz`.
 
 ```{r}
 busstop <- st_read(dsn = "data/geospatial", layer = "BusStop") %>%
@@ -107,6 +113,8 @@ mpsz <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019") %>%
   st_transform(crs = 3414)
 ```
 
+The following code chunk is used to save the `mpsz` data object in rds (R Data Serialization) format file named *mpsz.rds* in the **data/rds** directory.
+
 ```{r}
 mpsz <- write_rds(mpsz, "data/rds/mpsz.rds")
 ```
@@ -115,22 +123,28 @@ mpsz <- write_rds(mpsz, "data/rds/mpsz.rds")
 
 #### **3.3.1. Combining Busstop and mpsz**
 
-The following code chunk populates the planning subzone code (i.e. *SUBZONE_C*) of `mpsz` sf data frame into `busstop` sf data frame.
+The following code chunk calculates the spatial intersection between the `busstop` and `mpsz` spatial datasets and subsequently retains only the *BUS_STOP_N* and *SUBZONE_C* columns from the resulting intersection dataset.
 
 ```{r}
 busstop_mpsz <- st_intersection(busstop, mpsz) %>%
   select(BUS_STOP_N, SUBZONE_C)
 ```
 
+The following code chunk displays the contents of the `busstop_mpsz` dataset in an interactive data table for us to view the data in a tabular format.
+
 ```{r}
 datatable(busstop_mpsz)
 ```
+
+The following code chunk is used to save the `busstop_mpsz` data object in rds (R Data Serialization) format file named *busstop_mpsz.rds* in the **data/rds** directory.
 
 ```{r}
 write_rds(busstop_mpsz, "data/rds/busstop_mpsz.rds")  
 ```
 
 ### 3.4. Hexagon Layer
+
+The following code chunk creates a grid of polygons, `hx_grid`, covering the spatial extent of the `busstop_mpsz` dataset. Each polygon in the grid has a cell size of 750 units and is generated as non-square polygons (the `square` parameter is set to `FALSE`). It then transforms the coordinate reference system (CRS) of the `hx_grid` to CRS **3414** using `st_transform`. After that, it converts the transformed grid `hx_grid` into a simple features (sf) object, `grid_sf`, which now includes the grid polygons as well as associated attributes and geometry.
 
 ```{r}
 hx_grid <- st_make_grid(busstop_mpsz, cellsize = 750, what = "polygons", square = FALSE) %>% st_transform(crs = 3414)
@@ -139,9 +153,13 @@ hx_grid <- st_make_grid(busstop_mpsz, cellsize = 750, what = "polygons", square 
 grid_sf <- st_sf(hx_grid)
 ```
 
+The following code chunk saves the `grid_sf` dataset, as a shapefile named *hexagon.shp* in the **data/geospatial** directory.
+
 ```{r}
 write_sf(grid_sf, "data/geospatial/hexagon.shp")
 ```
+
+The following code chunk reads the *hexagon* shapefile from the **data/geospatial** directory using the `st_read` function and renames the *FID* column to *GRID_ID* using `rename` function. Then, it transforms the coordinate reference system (CRS) of the dataset to CRS **3414** using `st_transform` function.
 
 ```{r}
 hexagon <- st_read(dsn = "data/geospatial", layer = "hexagon") %>%
@@ -151,14 +169,13 @@ hexagon <- st_read(dsn = "data/geospatial", layer = "hexagon") %>%
 
 ### 3.5. Combining Geospatial Data and Hexagon Layer
 
-```{r}
-od_data <- st_join(busstop_mpsz , hexagon,
-            by = c("geometry" = "geometry")) 
-```
+The following code chunk performs a spatial join between two datasets, `hexagon` and `busstop`, using the *GRID_ID* column as the common key to match and combine records from both datasets based on their spatial relationships. The resulting dataset, `hx_busstop`, will include combined information from both datasets for each polygon in the "hexagon" dataset that has matching bus stop data from the `busstop` dataset.
 
 ```{r}
 hx_busstop <- st_join(hexagon, busstop, by = c("GRID_ID" = "GRID_ID"))
 ```
+
+The following code chunk removes rows with missing values (NA) from the `hx_busstop` dataset using `drop_na()` function. This operation filters out rows that don't have complete information in any column. Then it groups the remaining rows in the `hx_busstop dataset` by the *GRID_ID* column using `group_by()` function to prepare the data for potential aggregation or summary operations within each group defined by unique *GRID_ID* values.
 
 ```{r}
 hx_busstop <- hx_busstop %>%
@@ -166,11 +183,22 @@ hx_busstop <- hx_busstop %>%
   group_by(GRID_ID)
 ```
 
+The following code chunk is used to save the `hx_busstop` data object in rds (R Data Serialization) format file named *hx_busstop.rds* in the **data/rds** directory.
+
 ```{r}
 write_rds(hx_busstop, "data/rds/hx_busstop.rds")
 ```
 
 ### 3.6. Combining `wemp` with `od_data`
+
+The following code chunk performs a spatial join between two datasets, `busstop_mpsz` and `hexagon`, using their geometry information. Specifically, it matches records from both datasets based on the spatial relationship between the geometries in the *geometry* column of each dataset.
+
+```{r}
+od_data <- st_join(busstop_mpsz , hexagon,
+            by = c("geometry" = "geometry")) 
+```
+
+The following code chunk first left joins the `wemp` dataset with the `od_data` dataset based on common columns, renames *ORIGIN_PT_CODE*, *SUBZONE_C*, *DESTINATION_PT_CODE* columns to *ORIGIN_BS*, *ORIGIN_SZ*, *DESTIN_BS* respectively, and then performs another left join to further combine the data, resulting in the `flow_data` dataset with integrated information.
 
 ```{r}
 flow_data <- wemp %>%
@@ -181,6 +209,8 @@ flow_data <- wemp %>%
   left_join(od_data, by = c("DESTIN_BS" = "BUS_STOP_N"))
 ```
 
+The following code chunk identifies and retains rows in the `flow_data` dataset where all columns have duplicate values, effectively filtering for duplicated rows, and then ungroups the dataset to remove the grouping structure.
+
 ```{r}
 duplicate <- flow_data %>%
   group_by_all() %>%
@@ -188,9 +218,13 @@ duplicate <- flow_data %>%
   ungroup()
 ```
 
+The following code chunk creates a new dataset, `flow_data2`, containing only the unique rows from the `flow_data` dataset, effectively removing any duplicate rows.
+
 ```{r}
 flow_data2 <- unique(flow_data)
 ```
+
+The following code chunk first removes rows with missing values from the `flow_data2` dataset. Then, it groups the dataset by pairs of *GRID_ID.x* and *GRID_ID.y* and calculates the total sum of *TRIPS* for each unique combination of these grid identifiers. This aggregation results in a dataset containing summarized trip information for distinct pairs of grid identifiers.
 
 ```{r}
 flow_data2 <- flow_data2 %>%
@@ -199,9 +233,13 @@ flow_data2 <- flow_data2 %>%
   summarise(TRIPS = sum(TRIPS))
 ```
 
+The following code chunk is used to save the `flow_data2` data object in rds (R Data Serialization) format file named *flow_data2.rds* in the **data/rds** directory.
+
 ```{r}
 write_rds(flow_data2, "data/rds/flow_data2.rds")
 ```
+
+The following code chunk utilizes `read_rds` function to import `flow_data2` dataset.
 
 ```{r}
 flow_data2 <- read_rds("data/rds/flow_data2.rds")
@@ -211,12 +249,16 @@ flow_data2 <- read_rds("data/rds/flow_data2.rds")
 
 ### 4.1. Removing Intra-zonal Flows
 
+The following code chunk generates a new dataset called `inter_flow_data` by selecting and keeping rows from the `flow_data2` dataset where the starting grid identifier (*GRID_ID.x*) is different from the destination grid identifier (*GRID_ID.y*) to retain records that represent flows between distinct grid locations while excluding flows that start and end at the same location.
+
 ```{r}
 inter_flow_data <- flow_data2 %>% 
   filter(GRID_ID.x != GRID_ID.y)
 ```
 
 ### 4.2. Creating Desired Lines
+
+The following code chunk utilizes `od2line` function to create a set of flow lines, based on the data provided in the `inter_flow_data` dataset by using the **hexagon** zones and their **GRID_ID** as reference codes to define the flow lines between different zones.
 
 ```{r}
 flowLine <- od2line(flow = inter_flow_data, 
@@ -225,6 +267,8 @@ flowLine <- od2line(flow = inter_flow_data,
 ```
 
 ### 4.3. Visualizing Desired Lines
+
+The following code chunk sets plotting options and creates a thematic map that includes geographical area polygons `mpsz`, hexagon-bus stop polygons `hx_busstop`"), and flow lines `flowLine`") representing trips between locations. The flow lines' appearance and width are determined by trip data. We set different trip thresholds, including the total trip count, trips \>= 500, trips\>= 1000, and trips \>= 5000, to gain a better understanding of the flow of trips.
 
 ::: panel-tabset
 ## Total Trips
@@ -248,7 +292,7 @@ tm_shape() +
            alpha = 0.3)
 ```
 
-## Trips \>= 1000
+## Trips \>= 500
 
 ```{r}
 tmap_mode("plot")
@@ -261,7 +305,29 @@ tm_shape(mpsz) +
 tm_shape(hx_busstop) +
   tm_polygons() +
 flowLine %>%  
-  filter(TRIPS >= 1000) %>%
+  filter(TRIPS >= 500) %>%
+tm_shape() +
+  tm_lines(lwd = "TRIPS",
+           style = "quantile",
+           scale = c(0.1, 1, 3, 5, 7, 10),
+           n = 6,
+           alpha = 0.3)
+```
+
+## Trips \>= 1000
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+flowLine %>% 
+    filter(TRIPS >= 1000) %>%
 tm_shape() +
   tm_lines(lwd = "TRIPS",
            style = "quantile",
@@ -282,30 +348,8 @@ tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(hx_busstop) +
   tm_polygons() +
-flowLine %>% 
-    filter(TRIPS >= 5000) %>%
-tm_shape() +
-  tm_lines(lwd = "TRIPS",
-           style = "quantile",
-           scale = c(0.1, 1, 3, 5, 7, 10),
-           n = 6,
-           alpha = 0.3)
-```
-
-## Trips \>= 10000
-
-```{r}
-tmap_mode("plot")
-```
-
-```{r}
-tmap_options(check.and.fix = TRUE)
-tm_shape(mpsz) +
-  tm_polygons() +
-tm_shape(hx_busstop) +
-  tm_polygons() +
 flowLine %>%  
-    filter(TRIPS >= 10000) %>%
+    filter(TRIPS >= 5000) %>%
 tm_shape() +
   tm_lines(lwd = "TRIPS",
            style = "quantile",
@@ -315,23 +359,35 @@ tm_shape() +
 ```
 :::
 
-# **5. Aggregating propulsive and attractiveness variables**
+When analyzing the plots abovr, the total trip count appears cluttered, while the category of trips \>= 5000 provides limited information. However, focusing on trips \>= 500 and trips \>= offers more meaningful insights to understand the urban mobility patterns of public bus transit.
+
+# **5. Assembling propulsive and attractiveness variables**
 
 ### 5.1. Propulsive Variables
+
+**HDB Data**: Housing data encompasses information about residential properties, including variables like housing density, property types, and geographical distribution of residential areas. This dataset enables the analysis of how residential patterns correlate with public transit usage and urban mobility.
+
+**F&B Data**: F&B data includes information about restaurants, cafes, and dining establishments in an area. This dataset can be used to assess the availability of dining options along transit routes, how these establishments contribute to economic activities around transit hubs, and their influence on transit ridership.
+
+**Train Station Exit Data** : Train Station Exit data focuses on transit access and egress points, such as bus stops, subway stations, or train stations. It provides details about the locations where passengers enter and exit public transit systems, helping us analyze the accessibility and convenience of these transit points and their impact on urban mobility.
 
 ::: panel-tabset
 ## HDB
 
-We utilize the `read_csv()` function from the **readr** package to import the *HDB Property Information* data, downloaded from [data.gov.sg](https://beta.data.gov.sg/) and name it as `hdb`.
+We utilize the `read_csv()` function from the **readr** package to import the *HDB* data, downloaded from [data.gov.sg](https://beta.data.gov.sg/) and name it as `hdb`.
 
 ```{r}
 hdb <- read_csv("data/aspatial/hdb.csv") 
 ```
 
+The following code chunk extracts longitude and latitude coordinates from the `hdb` dataset and creates a spatial points dataframe, `spatial_points`, using these coordinates, enabling spatial analysis and visualization of HDB property data.
+
 ```{r}
 coordinates <- hdb[, c("lng", "lat")]  
 spatial_points <- SpatialPointsDataFrame(coordinates, hdb)
 ```
+
+The following code chunk converts longitude and latitude coordinates into a SpatialPoints object in the **WGS84** coordinate system (**EPSG:4326**), then transforms it to the **EPSG:3414** coordinate system, finally converting it back to a SpatialPoints object in **EPSG:3414** for further analysis.
 
 ```{r}
 # Create a SpatialPoints object
@@ -354,6 +410,25 @@ sf_points_3414 <- st_transform(sf_points, crs = epsg_3414_crs)
 spatial_points_3414 <- as(sf_points_3414, "Spatial")
 ```
 
+The following code chunk first converts the `spatial_points_3414` object to an sf object and then determines which points in the `hx_busstop` dataset intersect with these spatial points. Finally, it adds a new column, *HDB_COUNT*, to the `hx_busstop` dataset, indicating the count of intersections, essentially representing the number of nearby HDB points for each bus stop.
+
+```{r}
+sf_spatial_points_3414 <- st_as_sf(spatial_points_3414)
+intersections <- st_intersects(hx_busstop, sf_spatial_points_3414)
+
+hx_busstop$HDB_COUNT <- lengths(intersections)
+```
+
+The following code chunk generates a summary statistics report for the *HDB_COUNT* column in the `hx_busstop` dataset.
+
+```{r}
+summary(hx_busstop$HDB_COUNT)
+```
+
+The summary statistics reveal that there is considerable variability in the count of nearby **HDB** points for bus stops, with a wide range from 0 to 103. The median count of 12 and the mean count of 23.02 suggest that while some bus stops have a relatively low number of nearby **HDB** points, others have a higher density of housing in their vicinity.
+
+Next, we will plot the geographical representation of `hdb` dataset by utilizing a variety of functions from **tmap** package.
+
 ```{r}
 tmap_mode("plot")
 ```
@@ -367,163 +442,11 @@ tm_shape(spatial_points_3414) +
   tm_dots()
 ```
 
-```{r}
-sf_spatial_points_3414 <- st_as_sf(spatial_points_3414)
-
-intersections <- st_intersects(hx_busstop, sf_spatial_points_3414)
-
-hx_busstop$HDB_COUNT <- lengths(intersections)
-```
-
-```{r}
-summary(hx_busstop$HDB_COUNT)
-```
-
-## Business
-
-```{r}
-business <- st_read(dsn = "data/geospatial",
-                   layer = "Business") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-hx_busstop$`BUSINESS_COUNT`<- lengths(
-  st_intersects(hx_busstop, business))
-```
-
-```{r}
-summary(hx_busstop$BUSINESS_COUNT)
-```
-
-```{r}
-tmap_mode("plot")
-```
-
-```{r}
-tm_shape(mpsz) +
-  tm_polygons() +
-tm_shape(hx_busstop) +
-  tm_polygons() +
-tm_shape(business) +
-  tm_dots() 
-```
-
-## School
-
-```{r}
-url <- "https://www.onemap.gov.sg/api/common/elastic/search"
-
-csv <- read_csv("data/aspatial/Generalinformationofschools.csv")
-```
-
-```{r}
-postcodes <- csv$`postal_code`
-
-found <- data.frame()
-not_found <- data.frame()
-
-for (postcode in postcodes) {
-  query <-
-    list(
-      'searchVal' = postcode,
-      'returnGeom' = 'Y',
-      'getAddrDetails' = 'Y',
-      'pageNum' = '1'
-    )
-  res <- GET(url, query = query)
-  
-  if ((content(res)$found) != 0) {
-    found <- rbind(found, data.frame(content(res))[4:13])
-  } else{
-    not_found = data.frame(postcode)
-  }
-}
-```
-
-```{r}
-merged <- merge(csv, found, by.x = 'postal_code', by.y = 'results.POSTAL', all = TRUE)
-write.csv(merged, file = "data/aspatial/schools.csv")
-write.csv(not_found, file = "data/aspatial/not_found.csv")
-```
-
-```{r}
-schools <- read_csv("data/aspatial/schools.csv") %>%
-  rename(latitude = "results.LATITUDE",
-         longitude = "results.LONGITUDE") %>%
-  select(postal_code, school_name, latitude, longitude)
-```
-
-```{r}
-schools[257,"latitude"] <- 1.3887
-schools[257,"longitude"] <- 103.7652
-```
-
-```{r}
-schools_sf <- st_as_sf(schools,
-                       coords = c("longitude", "latitude"),
-                       crs = 4326) %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-tmap_mode("plot")
-```
-
-```{r}
-tmap_options(check.and.fix = TRUE)
-tm_shape(mpsz) +
-  tm_polygons() +
-tm_shape(hx_busstop) +
-  tm_polygons() +
-tm_shape(schools_sf) +
-  tm_dots()
-```
-
-```{r}
-hx_busstop$`SCHOOL_COUNT`<- lengths(
-  st_intersects(hx_busstop, schools_sf))
-```
-
-```{r}
-summary(hx_busstop$`SCHOOL_COUNT`)
-```
-:::
-
-### 5.2. Attractiveness Variables
-
-::: panel-tabset
-## Retails
-
-```{r}
-retails <- st_read(dsn = "data/geospatial",
-                   layer = "Retails") %>%
-  st_transform(crs = 3414)
-```
-
-```{r}
-hx_busstop$`RETAILS_COUNT`<- lengths(
-  st_intersects(hx_busstop, retails))
-```
-
-```{r}
-summary(hx_busstop$`RETAILS_COUNT`)
-```
-
-```{r}
-tmap_mode("plot")
-```
-
-```{r}
-tm_shape(mpsz) +
-  tm_polygons() +
-tm_shape(hx_busstop) +
-  tm_polygons() +
-tm_shape(retails) +
-  tm_dots()
-```
+From the map above, it's evident that Singapore has high-density clusters of HDBs distributed across various regions.
 
 ## F&B
+
+The following code chunk utilizes `st_read` function to import *F&B* dataset as `fnb` and then transforms the data to use the coordinate reference system (CRS) **3414**.
 
 ```{r}
 fnb <- st_read(dsn = "data/geospatial",
@@ -531,14 +454,21 @@ fnb <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 ```
 
-```{r}
-hx_busstop$`FNB_COUNT`<- lengths(
-  st_intersects(hx_busstop, fnb))
-```
+The following code chunk adds a new column, *FNB_COUNT*, to the `hx_busstop` dataset, indicating the count of intersections, essentially representing the number of nearby **F&B** points for each bus stop.
 
 ```{r}
-summary(hx_busstop$`FNB_COUNT`)
+hx_busstop$`FNB_COUNT` <- lengths(st_intersects(hx_busstop, fnb))
 ```
+
+The following code chunk generates a summary statistics report for the *FNB_COUNT* column in the `hx_busstop` dataset.
+
+```{r}
+summary(hx_busstop$FNB_COUNT)
+```
+
+The summary statistics reveal that there is considerable variability in the count of nearby **F&B** points for bus stops, with a wide range from 0 to 133. The median count of 0 indicates that half of the bus stops have 0 **F&B** establishments nearby and the mean count of 3.035 suggests that on average, there are about 3.035 **F&B** establishments near the bus stops in the dataset.
+
+Next, we will plot the geographical representation of `fnb` dataset by utilizing a variety of functions from **tmap** package.
 
 ```{r}
 tmap_mode("plot")
@@ -553,7 +483,11 @@ tm_shape(fnb) +
   tm_dots()
 ```
 
+The map reveals that the central area exhibits a greater density of food and beverage (F&B) establishments.
+
 ## Train Station Exit
+
+The following code chunk utilizes `st_read` function to import *Train Station Exit* dataset as `mrt_exit` and then transforms the data to use the coordinate reference system (CRS) **3414**.
 
 ```{r}
 mrt_exit <- st_read(dsn = "data/geospatial",
@@ -561,14 +495,69 @@ mrt_exit <- st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 ```
 
+The following code chunk adds a new column, *EXIT_COUNT*, to the `hx_busstop` dataset, indicating the count of intersections, essentially representing the number of nearby **Train Station Exit** points for each bus stop.
+
 ```{r}
-hx_busstop$`EXIT_COUNT` <- lengths(
+hx_busstop$`EXIT_COUNT`<- lengths(
   st_intersects(hx_busstop, mrt_exit))
 ```
+
+The following code chunk generates a summary statistics report for the *EXIT_COUNT* column in the `hx_busstop` dataset.
 
 ```{r}
 summary(hx_busstop$`EXIT_COUNT`)
 ```
+
+The summary statistics reveal that there is considerable variability in the count of nearby **Train Station Exit** points for bus stops, with a wide range from 0 to 13. The median count of 0 indicates that half of the bus stops have 0 **Train Station Exit** nearby and the mean count of 0.9643 suggests that on average, there is close to 1 **Train Station Exit** near the bus stops in the dataset.
+
+Next, we will plot the geographical representation of `mrt_exit` dataset by utilizing a variety of functions from **tmap** package.
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tmap_options(check.and.fix = TRUE)
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(mrt_exit) +
+  tm_dots()
+```
+
+The map above illustrates that **Train Station Exits** are dispersed throughout Singapore, with a slightly higher concentration observed in the central area.
+:::
+
+### 5.2. Attractiveness Variables
+
+::: panel-tabset
+## Retails
+
+The following code chunk utilizes `st_read` function to import *RETAILS* dataset as `retails` and then transforms the data to use the coordinate reference system (CRS) **3414**.
+
+```{r}
+retails <- st_read(dsn = "data/geospatial",
+                   layer = "Retails") %>%
+  st_transform(crs = 3414)
+```
+
+The following code chunk adds a new column, RETAILS_COUNT, to the `hx_busstop` dataset, indicating the count of intersections, essentially representing the number of nearby **RETAILS** points for each bus stop.
+
+```{r}
+hx_busstop$`RETAILS_COUNT`<- lengths(
+  st_intersects(hx_busstop, retails))
+```
+
+The following code chunk generates a summary statistics report for the *RETAILS_COUNT* column in the `hx_busstop` dataset.
+
+```{r}
+summary(hx_busstop$`RETAILS_COUNT`)
+```
+
+The summary statistics indicate substantial variability in the count of nearby **RETAILS** establishments for bus stops, ranging from 0 to 1678. The median count of 17 reveals that half of the bus stops have 17 **RETAILS** establishments nearby, and the mean count of approximately 61.04 suggests that, on average, there are about 61.04 **RETAILS** establishments near the bus stops in the dataset.
+
+Next, we will plot the geographical representation of `retails` dataset by utilizing a variety of functions from **tmap** package.
 
 ```{r}
 tmap_mode("plot")
@@ -579,51 +568,128 @@ tm_shape(mpsz) +
   tm_polygons() +
 tm_shape(hx_busstop) +
   tm_polygons() +
-tm_shape(mrt_exit) +
+tm_shape(retails) +
   tm_dots()
 ```
+
+The map depicted above demonstrates that high densities of **RETAILS** points are distributed across Singapore, with a notably higher density observed within the central and east regions.
+
+## Entertainment
+
+The following code chunk utilizes `st_read` function to import *entertn* dataset as `entertn` and then transforms the data to use the coordinate reference system (CRS) **3414**.
+
+```{r}
+entertn <- st_read(dsn = "data/geospatial",
+                   layer = "entertn") %>%
+  st_transform(crs = 3414)
+```
+
+The following code chunk adds a new column, *ENTERTN_COUNT*, to the `hx_busstop` dataset, indicating the count of intersections, essentially representing the number of nearby **ENTERTAINMENT** points for each bus stop.
+
+```{r}
+hx_busstop$`ENTERTN_COUNT`<- lengths(
+  st_intersects(hx_busstop, entertn))
+```
+
+The following code chunk generates a summary statistics report for the *ENTERTN_COUNT* column in the `hx_busstop` dataset.
+
+```{r}
+summary(hx_busstop$`ENTERTN_COUNT`)
+```
+
+The summary statistics suggest significant variability in the count of nearby **ENTERTAINMENT** establishments for the dataset, spanning from 0 to a maximum of 9. With a median count of 0, it is evident that half of the data points have no nearby **ENTERTAINMENT** establishments, while the mean count of approximately 0.1998 indicates that the average number of **ENTERTAINMENT** establishments near these points is less than one.
+
+Next, we will plot the geographical representation of `entertn` dataset by utilizing a variety of functions from **tmap** package.
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(entertn) +
+  tm_dots()
+```
+
+The map above illustrates that very low density of **ENTERTAINMENT** establishments is dispersed throughout Singapore, with a slightly higher density observed in the central area.
+
+## Leisure&Recreation
+
+The following code chunk utilizes `st_read` function to import *Liesure&Recreation* dataset as `lnr` and then transforms the data to use the coordinate reference system (CRS) **3414**.
+
+```{r}
+lnr <- st_read(dsn = "data/geospatial",
+                   layer = "Liesure&Recreation") %>%
+  st_transform(crs = 3414)
+```
+
+The following code chunk adds a new column, *LNR_COUNT*, to the `hx_busstop` dataset, indicating the count of intersections, essentially representing the number of nearby **Leisure & Recreation** points for each bus stop.
+
+```{r}
+hx_busstop$`LNR_COUNT` <- lengths(
+  st_intersects(hx_busstop, lnr))
+```
+
+The following code chunk generates a summary statistics report for the *LNR_COUNT* column in the `hx_busstop` dataset.
+
+```{r}
+summary(hx_busstop$`LNR_COUNT`)
+```
+
+The summary statistics suggest significant variability in the count of nearby **Leisure & Recreation** establishments for the dataset, spanning from 0 to a maximum of 41. With a median count of 0, it is evident that half of the data points have no nearby **Leisure & Recreation** establishments, while the mean count of approximately 1.583 indicates that the average number of **Leisure & Recreation** establishments near these points is more than one.
+
+Next, we will plot the geographical representation of `lnr` dataset by utilizing a variety of functions from **tmap** package.
+
+```{r}
+tmap_mode("plot")
+```
+
+```{r}
+tm_shape(mpsz) +
+  tm_polygons() +
+tm_shape(hx_busstop) +
+  tm_polygons() +
+tm_shape(lnr) +
+  tm_dots()
+```
+
+The map above illustrates that **Leisure & Recreation** establishments are dispersed throughout Singapore, with a slightly higher density observed in the central area
 :::
+
+### 5.3. Tidy Data with Propulsive and Attractive Variables
+
+The following code chunk transforms the `hx_busstop` dataset by removing the spatial geometry information and selecting specific columns related to attributes such as counts of **HDB**, **F&B** establishments, **Train Station Exits**, **retail** establishments, **Entertainment** points, and **Leisure &** **Recreation** establishments.
 
 ```{r}
 tidy_hx_busstop <- hx_busstop %>%
   st_drop_geometry() %>%
-  select(GRID_ID, HDB_COUNT, SCHOOL_COUNT, BUSINESS_COUNT, RETAILS_COUNT, FNB_COUNT, EXIT_COUNT)
+  select(GRID_ID,
+         HDB_COUNT,
+         FNB_COUNT,
+         EXIT_COUNT,
+         RETAILS_COUNT,
+         ENTERTN_COUNT,
+         LNR_COUNT)
 ```
 
+In the following code chunk, we are performing a left join operation between `inter_flow_data` and `tidy_hx_busstop` dataframes, based on the common column *GRID_ID.y* in `inter_flow_data` and *GRID_ID* in `tidy_hx_busstop`, resulting in a new data frame named `tidy_data`.
+
 ```{r}
-tidy_data <- flow_data2 %>%
+tidy_data <- inter_flow_data %>%
   left_join(tidy_hx_busstop,
             by = c("GRID_ID.y" = "GRID_ID"))
 ```
 
-```{r}
-summary(tidy_data)
-```
-
-```{r}
-tidy_data$HDB_COUNT <- ifelse(
-  tidy_data$HDB_COUNT == 0,
-  0.99, tidy_data$HDB_COUNT)
-tidy_data$BUSINESS_COUNT <- ifelse(
-  tidy_data$BUSINESS_COUNT == 0,
-  0.99, tidy_data$BUSINESS_COUNT)
-tidy_data$SCHOOL_COUNT <- ifelse(
-  tidy_data$SCHOOL_COUNT == 0,
-  0.99, tidy_data$SCHOOL_COUNT)
-tidy_data$RETAILS_COUNT <- ifelse(
-  tidy_data$RETAILS_COUNT == 0,
-  0.99, tidy_data$RETAILS_COUNT)
-tidy_data$FNB_COUNT <- ifelse(
-  tidy_data$FNB_COUNT == 0,
-  0.99, tidy_data$FNB_COUNT)
-tidy_data$EXIT_COUNT <- ifelse(
-  tidy_data$EXIT_COUNT == 0,
-  0.99, tidy_data$EXIT_COUNT)
-```
+Next, we will look at the summary of `tidy_data`.
 
 ```{r}
 summary(tidy_data)
 ```
+
+The following code chunk identifies and filters duplicate rows within the `tidy_data` data frame, resulting in a new data frame named `duplicate` that contains only unique rows.
 
 ```{r}
 duplicate <- tidy_data %>%
@@ -632,13 +698,19 @@ duplicate <- tidy_data %>%
   ungroup()
 ```
 
+The following code chunk removes duplicate rows from the `tidy_data` data frame, retaining only unique rows in the dataset.
+
 ```{r}
 tidy_data <- unique(tidy_data)
 ```
 
+We do one more check on summary of `tidy_data`.
+
 ```{r}
 summary(tidy_data)
 ```
+
+The following code chunk is used to save the `tidy_data` data object in rds (R Data Serialization) format file named *tidy_data.rds* in the **data/rds** directory.
 
 ```{r}
 write_rds(tidy_data,"data/rds/tidy_data.rds")
@@ -648,6 +720,8 @@ write_rds(tidy_data,"data/rds/tidy_data.rds")
 
 ### 6.1. **Converting from sf data.table to SpatialPolygonsDataFrame**
 
+In the following code chunk, we convert the `hx_busstop` dataset to a spatial object of class *Spatial* using the `as()` function and assigning it to the `hx_busstop_sp` variable.
+
 ```{r}
 hx_busstop_sp <- as(hx_busstop, "Spatial")
 hx_busstop_sp
@@ -655,20 +729,28 @@ hx_busstop_sp
 
 ### 6.2. **Computing the distance matrix**
 
+The following code chunk calculates the pairwise distances between locations represented in the `hx_busstop_sp` spatial object, with distances returned in a matrix format, displaying the first 10 rows and 10 columns of the distance matrix using `head()`.
+
 ```{r}
 dist <- spDists(hx_busstop_sp,
                 longlat = FALSE)
 head(dist, n = c(10, 10))
 ```
 
+The following code chunkassigns the values from the *GRID_ID* column of the `hx_busstop` dataset to the variable `sz`.
+
 ```{r}
 sz <- hx_busstop$GRID_ID
 ```
+
+The following code chunk sets the column names and row names of the distance matrix **dist** to match the values from the *GRID_ID* column of the `hx_busstop` dataset, effectively labeling the rows and columns with the corresponding identifiers.
 
 ```{r}
 colnames(dist) <- paste0(sz)
 rownames(dist) <- paste0(sz)
 ```
+
+The following code chunk reshapes the distance matrix **dist** into a long format, renames the value column to *dist*, and displays the first 10 rows of the resulting `distPair` data frame, which now represents pairwise distances between locations.
 
 ```{r}
 distPair <- melt(dist) %>%
@@ -676,21 +758,22 @@ distPair <- melt(dist) %>%
 head(distPair, 10)
 ```
 
+We use the following code chunk to filter the `distPair` data frame to keep only rows where the distance *dist* is greater than 0 and then provides a summary of the filtered data, likely showing summary statistics of the non-zero distances between locations.
+
 ```{r}
 distPair %>%
   filter(dist > 0) %>%
   summary()
 ```
 
+Next, we update the *dist* column in the `distPair` data frame, replacing any values equal to 0 with 300.
+
 ```{r}
 distPair$dist <- ifelse(distPair$dist == 0,
                         300, distPair$dist)
 ```
 
-```{r}
-distPair %>%
-  summary()
-```
+In the following code chunk, we rename the columns in the `distPair` data frame. The column is renamed to *orig*, and the *Var2* column is renamed to dest.
 
 ```{r}
 distPair <- distPair %>%
@@ -698,19 +781,24 @@ distPair <- distPair %>%
          dest = Var2)
 ```
 
+Let's look at the summary of the `distPair` data frame.
+
+```{r}
+distPair %>%
+  summary()
+```
+
+The following code chunk is used to save the `distPair` data object in rds (R Data Serialization) format file named *distPair.rds* in the **data/rds** directory.
+
 ```{r}
 write_rds(distPair, "data/rds/distPair.rds") 
 ```
 
 # **7. Spatial Interaction Modelling**
 
-### 7.1.
+### 7.1. **Separating Intra-Flow from the Data**
 
-```{r}
-head(tidy_data, 10)
-```
-
-### 7.2. **Separating Intra-Flow from Trips df**
+We use the following code chunk to add two new columns, *FlowNoIntr*a and *offset*, to the `tidy_data` dataset, with *FlowNoIntr*a containing values of 0 for intra-flow data and *offset* set to a small value for intra-flow records to distinguish them from other data.
 
 ```{r}
 tidy_data$FlowNoIntra <- ifelse(
@@ -721,23 +809,18 @@ tidy_data$offset <- ifelse(
   0.000001, 1)
 ```
 
-### 7.3. **Combining the Data with Distance Value**
+### 7.2. **Combining the Data with Distance Value**
+
+The following code chunk is used to perform a left join between the `tidy_data` dataset and the `distPair` dataset, based on the common columns *GRID_ID.x* (in `tidy_data`) and *orig*, as well as *GRID_ID.y* (in `tidy_data`) and *dest*. This operation combines the two datasets using these common columns, resulting in a new dataset named `tidy_data1`.
 
 ```{r}
-tidy_data$GRID_ID.x <- as.factor(tidy_data$GRID_ID.x)
-tidy_data$GRID_ID.y <- as.factor(tidy_data$GRID_ID.y)
-```
-
-```{r}
-tidy_data$GRID_ID.x <- as.integer(as.character(tidy_data$GRID_ID.x))
-tidy_data$GRID_ID.y <- as.integer(as.character(tidy_data$GRID_ID.y))
-
-
 tidy_data1 <- tidy_data %>%
   left_join (distPair,
              by = c("GRID_ID.x" = "orig",
                     "GRID_ID.y" = "dest"))
 ```
+
+The following code chunk identifies and filters duplicate rows within the `tidy_data1` data frame, resulting in a new data frame named `duplicate` that contains only unique rows.
 
 ```{r}
 duplicate <- tidy_data1 %>%
@@ -746,29 +829,37 @@ duplicate <- tidy_data1 %>%
   ungroup()
 ```
 
+The following code chunk removes duplicate rows from the `tidy_data1` data frame, retaining only unique rows in the dataset.
+
 ```{r}
 tidy_data1 <- unique(tidy_data1)
 ```
+
+The following code chunk is used to save the `tidy_data1` data object in rds (R Data Serialization) format file named *SIM_data.rds* in the **data/rds** directory.
 
 ```{r}
 write_rds(tidy_data1, "data/rds/SIM_data.rds")
 ```
 
-### 7.2. **Calibrating Spatial Interaction Models**
-
-7.2.1.
+The following code chunk utilizes `read_rds()` function to import *SIM_data.rds* and store it in a variable called `SIM_data`.
 
 ```{r}
 SIM_data <- read_rds("data/rds/SIM_data.rds")
 ```
 
-7.2.2.
+### 7.3. Visualizing the Dependent Variable
+
+This code uses the **ggplot2** library in R to create a histogram plot of the *TRIPS* variable from the `SIM_data` dataset, visualizing the distribution of values in that variable.
 
 ```{r}
 ggplot(data = SIM_data,
        aes(x = TRIPS)) +
   geom_histogram()
 ```
+
+The histogram indicates that the variable *TRIPS* is heavily right-skewed, with the majority of data concentrated in the first bin, suggesting that lower counts of *TRIPS* are much more common than higher counts. There is a noticeable drop-off in frequency as the number of *TRIPS* increases, with very few high count instances.
+
+The following code chunk uses the **ggplot2** package to create a scatterplot with a linear regression line, visually representing the relationship between *dist* and *TRIPS* variables in the `SIM_data` dataset to visualize the data's distribution and the linear trend between these two variables.
 
 ```{r}
 ggplot(data = SIM_data,
@@ -778,6 +869,10 @@ ggplot(data = SIM_data,
   geom_smooth(method = lm)
 ```
 
+The scatter plot shows that as the distance increases, the number of trips decreases, which suggests that shorter trips are far more common than longer ones. The dense clustering of points near the origin indicates a high frequency of short-distance trips. There are also a few outliers, indicating some trips with exceptionally high distances or number of trips, but these are relatively rare. However, their relationship hardly resemble linear relationship.
+
+The following code chunk utilizes the **ggplot2** package to create a scatterplot with a linear regression line, by transforming both the x-axis and y-axis variables using the natural logarithm (log).
+
 ```{r}
 ggplot(data = SIM_data,
        aes(x = log(dist),
@@ -786,45 +881,72 @@ ggplot(data = SIM_data,
   geom_smooth(method = lm)
 ```
 
-#### 7.2.3. **Checking for variables with zero values**
+From the scatter plot above, the presence of a trend line indicates that as the distance increases, the number of trips decreases exponentially. Additionally, the data points are more spread out for shorter distances, and they become increasingly dense as the distance grows, highlighting that shorter trips are exponentially more frequent than longer ones. We can now see that their relationship is more resemble linear relationship.
+
+### 7.4. **Modelling**
+
+#### 7.4.1. **Checking for variables with zero values**
+
+Because Poisson Regression relies on logarithms, we need to verify that there are no zero values in the explanatory variables.
+
+In the following code chunk, the `summary()` function from Base R is employed to calculate summary statistics for all the variables within the `SIM_data` data frame.
 
 ```{r}
 summary(SIM_data)
 ```
+
+The following code chunk below is used to replace 0 values to 0.99 for the propulsive and attractiveness variables.
+
+```{r}
+SIM_data$HDB_COUNT <- ifelse(
+  SIM_data$HDB_COUNT == 0,
+  0.99, SIM_data$HDB_COUNT)
+SIM_data$FNB_COUNT <- ifelse(
+  SIM_data$FNB_COUNT == 0,
+  0.99, SIM_data$FNB_COUNT)
+SIM_data$EXIT_COUNT <- ifelse(
+  SIM_data$EXIT_COUNT == 0,
+  0.99, SIM_data$EXIT_COUNT)
+SIM_data$RETAILS_COUNT <- ifelse(
+  SIM_data$RETAILS_COUNT == 0,
+  0.99, SIM_data$RETAILS_COUNT)
+SIM_data$ENTERTN_COUNT <- ifelse(
+  SIM_data$ENTERTN_COUNT == 0,
+  0.99, SIM_data$ENTERTN_COUNT)
+SIM_data$LNR_COUNT <- ifelse(
+  SIM_data$LNR_COUNT == 0,
+  0.99, SIM_data$LNR_COUNT)
+```
+
+Next, we convert the two specified columns, *GRID_ID.x* and *GRID_ID.y*, from `SIM_data` data frame to character type, so that their values will be treated as text rather than numeric or other data types in our models.
 
 ```{r}
 SIM_data$GRID_ID.x <- as.character(SIM_data$GRID_ID.x)
 SIM_data$GRID_ID.y <- as.character(SIM_data$GRID_ID.y)
 ```
 
+#### 7.4.2. Correlation Analysis
+
+In the following code chunk, each of the specified columns is converted to a numeric data type, so that their values will be treated as numerical rather than text or other data types.
+
 ```{r}
-inter_zonal_flow <- SIM_data %>%
-  filter(FlowNoIntra > 0) %>%
-  na.omit()
+SIM_data$HDB_COUNT<- as.numeric(SIM_data$HDB_COUNT)
+
+SIM_data$FNB_COUNT<- as.numeric(SIM_data$FNB_COUNT)
+
+SIM_data$EXIT_COUNT<- as.numeric(SIM_data$EXIT_COUNT)
+
+SIM_data$RETAILS_COUNT<- as.numeric(SIM_data$RETAILS_COUNT)
+
+SIM_data$ENTERTN_COUNT<- as.numeric(SIM_data$ENTERTN_COUNT)  
+
+SIM_data$LNR_COUNT<- as.numeric(SIM_data$LNR_COUNT)   
 ```
 
-```{r}
-summary(inter_zonal_flow)
-```
-
-### 7.3. **Correlation Analysis**
+The following code chunk computes and visualizes the correlations between the specified columns 4 to 9 in `SIM_data` data frame using a mixed-format correlation plot.
 
 ```{r}
-inter_zonal_flow$HDB_COUNT<- as.numeric(inter_zonal_flow$HDB_COUNT)
-
-inter_zonal_flow$BUSINESS_COUNT<- as.numeric(inter_zonal_flow$BUSINESS_COUNT)
-
-inter_zonal_flow$SCHOOL_COUNT<- as.numeric(inter_zonal_flow$SCHOOL_COUNT)
-
-inter_zonal_flow$RETAILS_COUNT<- as.numeric(inter_zonal_flow$RETAILS_COUNT)
-
-inter_zonal_flow$FNB_COUNT<- as.numeric(inter_zonal_flow$FNB_COUNT)  
-
-inter_zonal_flow$EXIT_COUNT<- as.numeric(inter_zonal_flow$EXIT_COUNT)   
-```
-
-```{r}
-vars.cor = cor(inter_zonal_flow[,4:9])
+vars.cor = cor(SIM_data[,4:9])
 corrplot.mixed(vars.cor,
          lower = "ellipse", 
                upper = "number",
@@ -833,223 +955,186 @@ corrplot.mixed(vars.cor,
                tl.col = "black")
 ```
 
-### 7.4. **Unconstrained Spatial Interaction Model**
+From the correlation plot, we can see that there is a moderate to strong positive correlation between *FNB_COUNT* and *RETAILS_COUNT*, *EXIT_COUNT*, and *ENTERTN_COUNT* (0.56, 0.65, and 0.50 respectively), suggesting that as the count of food and beverage outlets increases, the counts of retail shops, exits, and entertainment venues also tend to increase.
+
+Conversely, *HDB_COUNT* shows a weak negative correlation with *FNB_COUNT* (-0.17), indicating that in areas with more housing, there might be slightly fewer food and beverage outlets.
+
+#### 7.4.3. Spatial Interaction Models
+
+In order to measure how much variation of the trips can be accounted by the model, we write a function to calculate R-Squared value as shown below.
+
+```{r}
+CalcRSquared <- function(observed, estimated){
+  r <- cor(observed, estimated)
+  R2 <- r^2
+  R2
+}
+```
 
 ::: panel-tabset
-## With RETAILS_COUNT
+## **Unconstrained Spatial Interaction Model**
+
+The following code chunk demonstrates the calibration of the model.
 
 ```{r}
-uncSIM <- glm(formula = TRIPS ~ 
+uncSIM <- glm(formula = TRIPS ~
                   log(HDB_COUNT) +
-                  log(BUSINESS_COUNT) +
-                  log(SCHOOL_COUNT) +
+                  log(FNB_COUNT) +
+                  log(EXIT_COUNT) +
                   log(RETAILS_COUNT) +
-                  log(FNB_COUNT) +
-                  log(EXIT_COUNT) +
+                  log(ENTERTN_COUNT) +
+                  log(LNR_COUNT) +
                   log(dist),
               family = poisson(link = "log"),
-              data = inter_zonal_flow,
+              data = SIM_data,
               na.action = na.exclude)
 uncSIM
-```
-
-```{r}
-CalcRSquared <- function(observed, estimated){
-  r <- cor(observed, estimated)
-  R2 <- r^2
-  R2
-}
 ```
 
 ```{r}
 CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
 ```
 
-## Without RETAILS_COUNT
+### **Origin (Production) Constrained Spatial Interaction Model**
+
+The following code chunk demonstrates the calibration of the model. *GRID_ID.x* is the origin.
 
 ```{r}
-uncSIM <- glm(formula = TRIPS ~ 
-                  log(HDB_COUNT) +
-                  log(BUSINESS_COUNT) +
-                  log(SCHOOL_COUNT) +
-                  log(FNB_COUNT) +
-                  log(EXIT_COUNT) +
-                  log(dist),
-              family = poisson(link = "log"),
-              data = inter_zonal_flow,
-              na.action = na.exclude)
-uncSIM
-```
-
-```{r}
-CalcRSquared <- function(observed, estimated){
-  r <- cor(observed, estimated)
-  R2 <- r^2
-  R2
-}
-```
-
-```{r}
-CalcRSquared(uncSIM$data$TRIPS, uncSIM$fitted.values)
-```
-:::
-
-### 7.5. **Origin (Production) constrained SIM**
-
-```{r}
-orcSIM <- glm(formula = TRIPS ~ 
+orcSIM <- glm(formula = TRIPS ~
                   GRID_ID.x +
                   log(HDB_COUNT) +
-                  log(BUSINESS_COUNT) +
-                  log(SCHOOL_COUNT) +
-                  log(RETAILS_COUNT) +
                   log(FNB_COUNT) +
                   log(EXIT_COUNT) +
                   log(dist) - 1,
               family = poisson(link = "log"),
-              data = inter_zonal_flow,
+              data = SIM_data,
               na.action = na.exclude)
 orcSIM
-```
-
-```{r}
-CalcRSquared <- function(observed, estimated){
-  r <- cor(observed, estimated)
-  R2 <- r^2
-  R2
-}
 ```
 
 ```{r}
 CalcRSquared(orcSIM$data$TRIPS, orcSIM$fitted.values)
 ```
 
-### 7.6. **Destination constrained**
+### **Destination Constrained Spatial Interaction Model**
+
+The following code chunk demonstrates the calibration of the model. *GRID_ID.y* is the destination.
 
 ```{r}
-decSIM <- glm(formula = TRIPS ~ 
+decSIM <- glm(formula = TRIPS ~
                   GRID_ID.y +
-                  log(HDB_COUNT) +
-                  log(BUSINESS_COUNT) +
-                  log(SCHOOL_COUNT) +
                   log(RETAILS_COUNT) +
-                  log(FNB_COUNT) +
-                  log(EXIT_COUNT) +
+                  log(ENTERTN_COUNT) +
+                  log(LNR_COUNT) +
                   log(dist) - 1,
               family = poisson(link = "log"),
-              data = inter_zonal_flow,
+              data = SIM_data,
               na.action = na.exclude)
 decSIM
-```
-
-```{r}
-CalcRSquared <- function(observed, estimated){
-  r <- cor(observed, estimated)
-  R2 <- r^2
-  R2
-}
 ```
 
 ```{r}
 CalcRSquared(decSIM$data$TRIPS, decSIM$fitted.values)
 ```
 
-7.7. **Doubly constrained model**
+## **Doubly Constrained Spatial Interaction Model**
+
+The following code chunk demonstrates the calibration of the model. Both *GRID_ID.x* and *GRID_ID.y* are included.
 
 ```{r}
-dbcSIM <- glm(formula = TRIPS ~ 
+dbcSIM <- glm(formula = TRIPS ~
                   GRID_ID.x +
                   GRID_ID.y +
                   log(HDB_COUNT) +
-                  log(BUSINESS_COUNT) +
-                  log(SCHOOL_COUNT) +
-                  log(RETAILS_COUNT) +
                   log(FNB_COUNT) +
                   log(EXIT_COUNT) +
+                  log(RETAILS_COUNT) +
+                  log(ENTERTN_COUNT) +
+                  log(LNR_COUNT) +
                   log(dist),
               family = poisson(link = "log"),
-              data = inter_zonal_flow,
+              data = SIM_data,
               na.action = na.exclude)
 dbcSIM
 ```
 
 ```{r}
-CalcRSquared <- function(observed, estimated){
-  r <- cor(observed, estimated)
-  R2 <- r^2
-  R2
-}
-```
-
-```{r}
 CalcRSquared(dbcSIM$data$TRIPS, dbcSIM$fitted.values)
 ```
+:::
 
 # **8. Model comparison**
 
-8.1. **Statistical measures**
+### 8.1. **Statistical measures**
+
+The following code chunk creates a list called `model_list` containing four different models constructed above, `uncSIM`, `orcSIM`, `decSIM`, and `dbcSIM`, respectively.
 
 ```{r}
 model_list <- list(
-  Unconstrained= uncSIM,
+  Unconstrained = uncSIM,
   Origin_Constrained = orcSIM,
   Destination_Constrained = decSIM,
   Doubly_Constrained = dbcSIM)
 ```
 
+Then, we compares the performance of the models stored in the `model_list` using "RMSE" (Root Mean Squared Error) to assess which model has the best fit or predictive performance. The lower the RMSE, the better the model is.
+
 ```{r}
-compare_performance(model_list,
-                    metrics = "RMSE")
+compare_performance(model_list, metrics = "RMSE")
 ```
 
-8.2. **Visualising fitted values**
+The result indicates that, out of the four models, the Doubly Constrained model stands out as the superior model due to its having the lowest RMSE value.
+
+### 8.2. **Visualizing Fitted Values**
+
+::: panel-tabset
+## Unconstrained Spatial Interaction Model
 
 ```{r}
-df <- as.data.frame(uncSIM$fitted.values) %>%
+df_uncSIM <- as.data.frame(uncSIM$fitted.values) %>%
   round(digits = 0)
-```
 
-```{r}
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(df) %>%
+SIM_data <- SIM_data %>%
+  cbind(df_uncSIM) %>%
   rename(uncTRIPS = "uncSIM$fitted.values")
 ```
 
-```{r}
-df1 <- as.data.frame(orcSIM$fitted.values) %>%
-  round(digits = 0)
-```
+## Origin (Production) Constrained Spatial Interaction Model
 
 ```{r}
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(df1) %>%
+df_orcSIM <- as.data.frame(orcSIM$fitted.values) %>%
+  round(digits = 0)
+
+SIM_data <- SIM_data %>%
+  cbind(df_orcSIM) %>%
   rename(orcTRIPS = "orcSIM$fitted.values")
 ```
 
-```{r}
-df2 <- as.data.frame(decSIM$fitted.values) %>%
-  round(digits = 0)
-```
+## Destination Constrained Spatial Interaction Model
 
 ```{r}
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(df2) %>%
+df_decSIM <- as.data.frame(decSIM$fitted.values) %>%
+  round(digits = 0)
+
+SIM_data <- SIM_data %>%
+  cbind(df_decSIM) %>%
   rename(decTRIPS = "decSIM$fitted.values")
 ```
 
-```{r}
-df3 <- as.data.frame(dbcSIM$fitted.values) %>%
-  round(digits = 0)
-```
+## Doubly Constrained Spatial Interaction Model
 
 ```{r}
-inter_zonal_flow <- inter_zonal_flow %>%
-  cbind(df3) %>%
+df_dbcSIM <- as.data.frame(dbcSIM$fitted.values) %>%
+  round(digits = 0)
+
+SIM_data <- SIM_data %>%
+  cbind(df_dbcSIM) %>%
   rename(dbcTRIPS = "dbcSIM$fitted.values")
 ```
+:::
 
 ```{r}
-unc_p <- ggplot(data = inter_zonal_flow,
+unc_p <- ggplot(data = SIM_data,
                 aes(x = uncTRIPS,
                     y = TRIPS)) +
   geom_point() +
@@ -1057,7 +1142,7 @@ unc_p <- ggplot(data = inter_zonal_flow,
   coord_cartesian(xlim=c(0,20000),
                   ylim=c(0,20000))
 
-orc_p <- ggplot(data = inter_zonal_flow,
+orc_p <- ggplot(data = SIM_data,
                 aes(x = orcTRIPS,
                     y = TRIPS)) +
   geom_point() +
@@ -1066,7 +1151,7 @@ orc_p <- ggplot(data = inter_zonal_flow,
                   ylim=c(0,20000))
 
 
-dec_p <- ggplot(data = inter_zonal_flow,
+dec_p <- ggplot(data = SIM_data,
                 aes(x = decTRIPS,
                     y = TRIPS)) +
   geom_point() +
@@ -1075,7 +1160,7 @@ dec_p <- ggplot(data = inter_zonal_flow,
                   ylim=c(0,20000))
 
 
-dbc_p <- ggplot(data = inter_zonal_flow,
+dbc_p <- ggplot(data = SIM_data,
                 aes(x = dbcTRIPS,
                     y = TRIPS)) +
   geom_point() +
@@ -1090,6 +1175,24 @@ ggarrange(unc_p, orc_p, dec_p, dbc_p,
           nrow = 2)
 ```
 
-# **9. Modelling Results**
+### **8.3. Interpreting the Results**
+
+We can infer that **Doubly Constrained Spatial Interaction Model** with lowest Root Mean Square Error (RMSE) of 303.932 has the best performance among the four in terms of predicting actual trips with the least amount of error.
+
+In addition, the dbcTRIPS scatter plot shows a tighter clustering of data points around the line of best fit compared to the other models, indicating a stronger correlation between predicted and actual trip counts. This suggests that the **Doubly Constrained Spatial Interaction Model** is better at capturing the underlying patterns in the data, leading to more reliable predictions.
+
+The **Doubly Constrained Spatial Interaction Model**'s results suggest that it effectively captures the relationship between bus trip volumes and a set of urban features, such as housing density, availability of food and beverage outlets, proximity to train station exits, retail counts, and entertainment options.
+
+In Singapore where there is a high concentration of residential units, particularly HDB flats, there is likely to be a greater demand for public transportation due to the higher population density. Additionally, the presence of F&B outlets, retail, and entertainment options within walking distance or a short bus ride can increase trip frequency as residents use public transport for leisure and shopping, as well as for commuting.
+
+Areas that serve as transport hubs, where train stations are complemented by bus services, often see high volumes of passengers transferring between modes of transport. If the exits of these stations are well-connected to bus services, this can facilitate easy transfers, making the entire public transport system more attractive and potentially increasing overall trip counts.
+
+During weekends and holidays, the influence of retail and entertainment amenities on bus trip volumes may be particularly pronounced. People are more likely to use buses to travel to shopping centers, restaurants, cinemas, and parks. The dbc model's accuracy in these time frames suggests that it could be used to predict and manage increased demand during these periods, leading to better service provision and passenger satisfaction.
 
 # **10. Conclusion**
+
+In analyzing the transport dynamics during weekends and holidays, particularly between 11am and 2pm, it is crucial to recognize that bus passenger volume significantly impacts the daily life of the entire community, not just students and workers. This time frame is influenced by propulsive factors like housing, food & beverage (F&B) options, and proximity to train station exits. Simultaneously, it is also shaped by attractive variables such as leisure and recreation, entertainment, and retail options.
+
+Public transportation, specifically buses, plays an integral role in ensuring mobility and accessibility for a wide range of demographics, including families, tourists, and local residents, in addition to students and workers. It is important to broaden the scope of research to include the diverse needs and patterns of all these groups. A comprehensive analysis of bus passenger volume during these peak leisure times is essential for developing transportation systems that are efficient, inclusive, and responsive to the needs of the entire community.
+
+Focused research in this area can provide valuable insights into how different segments of the population utilize public transport during weekends and holidays. This understanding can guide strategic policymaking and aid in the development of transportation infrastructure that better accommodates the varied requirements of the broader society, thereby enhancing overall public transport experience and accessibility.
